@@ -18,6 +18,10 @@ var (
 	doCompress     bool
 )
 
+func EnableLogCompress() {
+	doCompress = true
+}
+
 func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64, option string) (result string) {
 	var timeMs int64
 	var price float64
@@ -32,7 +36,6 @@ func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64,
 		timeMs = orgTimeMs
 		price = orgPrice
 	}
-
 	result = fmt.Sprintf("%d,%d", action, timeMs)
 
 	priceString := strconv.FormatFloat(price, 'f', -1, 64)
