@@ -7,7 +7,6 @@ import (
 	"log"
 )
 
-
 type InstrumentDelta struct {
 	Delete []Instrument `json:"delete"`
 	Update []Instrument `json:"update"`
@@ -42,7 +41,7 @@ type Instrument struct {
 	//`json:"updated_at"`//:"2021-04-26T15:05:12Z",
 	NextFundingTime string `json:"next_funding_time"` //:"2021-04-26T16:00:00Z",
 	//`json:"countdown_hour"`//:1},
-	TimeStampMs int64       `json:"timestamp_e6"`
+	TimeStampE6 int64 `json:"timestamp_e6"`
 }
 
 func (c *Instrument) update(d Instrument) {
@@ -107,50 +106,48 @@ func (c *Instrument) update(d Instrument) {
 		c.NextFundingTime = d.NextFundingTime
 	}
 
-	if d.TimeStampMs != 0 {
-		c.TimeStampMs = d.TimeStampMs
+	if d.TimeStampE6 != 0 {
+		c.TimeStampE6 = d.TimeStampE6
 	}
 }
 
 func (c *Instrument) ToLog() (result string) {
 	result = ""
 
-	t := c.TimeStampMs
+	t := c.TimeStampE6
 
 	// Open Interest
 	if c.OpenInterest != 0 {
-		result += MakeLogRec(common.OPEN_INTEREST, t, 0, float64(c.OpenInterest), "")
+		result += MakeWsLogRec(common.OPEN_INTEREST, t, 0, float64(c.OpenInterest), "")
 	}
 
 	// Open Value
 	if c.OpenValue != 0 {
-		result += MakeLogRec(common.OPEN_VALUE, t, 0, float64(c.OpenValue), "")
+		result += MakeWsLogRec(common.OPEN_VALUE, t, 0, float64(c.OpenValue), "")
 	}
 
 	// TurnOver
 	if c.TotalTurnOver != 0 {
-		result += MakeLogRec(common.TURN_OVER, t, 0, float64(c.TotalTurnOver), "")
+		result += MakeWsLogRec(common.TURN_OVER, t, 0, float64(c.TotalTurnOver), "")
 	}
 
 	if c.FundingRate != 0 {
-		result += MakeLogRec(common.FUNDING_RATE, t, 0, float64(c.FundingRate), "")
+		result += MakeWsLogRec(common.FUNDING_RATE, t, 0, float64(c.FundingRate), "")
 	}
 
 	if c.PredictedFundingRate != 0 {
 		if c.NextFundingTime != "" {
-			timeMs := common.ParseIsoTimeToMs(c.NextFundingTime)
+			timeMs := common.ParseIsoTimeToE6(c.NextFundingTime)
 			sec, msec := common.DivideSecAndMs(timeMs)
 			nextFundingTime := fmt.Sprintf("%d.%d", sec, msec)
-			result += MakeLogRec(common.PREDICTED_FUNDING_RATE, t, 0, float64(c.PredictedFundingRate), nextFundingTime)
+			result += MakeWsLogRec(common.PREDICTED_FUNDING_RATE, t, 0, float64(c.PredictedFundingRate), nextFundingTime)
 		}
 	}
 
 	return result
 }
 
-
-
-func ParseInstrumentSnapshot(message json.RawMessage, timeMs int64) (result string) {
+func ParseInstrumentSnapshot(message json.RawMessage, timeE6 int64) (result string) {
 	var InstrumentData Instrument
 
 	err := json.Unmarshal(message, &InstrumentData)
@@ -158,13 +155,13 @@ func ParseInstrumentSnapshot(message json.RawMessage, timeMs int64) (result stri
 		log.Fatalln("Fail to pase message", err, message)
 	}
 
-	InstrumentData.TimeStampMs = timeMs
+	InstrumentData.TimeStampE6 = timeE6
 	result += InstrumentData.ToLog()
 
 	return result
 }
 
-func ParseInstrumentDelta(message json.RawMessage, timeMs int64) (result string) {
+func ParseInstrumentDelta(message json.RawMessage, timeE6 int64) (result string) {
 	var data InstrumentDelta
 
 	err := json.Unmarshal(message, &data)
@@ -175,13 +172,13 @@ func ParseInstrumentDelta(message json.RawMessage, timeMs int64) (result string)
 	result = ""
 
 	for i := range data.Update {
-		data.Update[i].TimeStampMs = timeMs
+		data.Update[i].TimeStampE6 = timeE6
 		result += data.Update[i].ToLog()
 	}
 
 	// Assume Delete and Insert message is not implemented
 	for i := range data.Delete {
-		data.Delete[i].TimeStampMs = timeMs
+		data.Delete[i].TimeStampE6 = timeE6
 		log.Println("INFO delete ", data.Delete[i])
 
 		result += data.Delete[i].ToLog()
@@ -189,7 +186,7 @@ func ParseInstrumentDelta(message json.RawMessage, timeMs int64) (result string)
 
 	for i := range data.Insert {
 		log.Println("INFO Insert", data.Insert[i])
-		data.Insert[i].TimeStampMs = timeMs
+		data.Insert[i].TimeStampE6 = timeE6
 		result += data.Insert[i].ToLog()
 	}
 

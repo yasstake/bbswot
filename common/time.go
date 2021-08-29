@@ -8,13 +8,13 @@ import (
 
 // DivideSecAndMs Divide  Millsecond to Sec part and msec part
 func DivideSecAndMs(timeMs int64) (sec int64, msec int64) {
-	sec  = timeMs / 1_000
+	sec = timeMs / 1_000
 	msec = timeMs % 1_000
 
 	return sec, msec
 }
 
-// MsToTime convert unix time(milliseconds) to TimeStampMs object
+// MsToTime convert unix time(milliseconds) to TimeStampE3 object
 func MsToTime(msec int64) time.Time {
 	tm := time.Unix(msec/1_000, (msec%1_000)*1_000_000)
 
@@ -25,12 +25,12 @@ func MsToTime(msec int64) time.Time {
 func MsToPrintDate(msec int64) string {
 	t := MsToTime(msec)
 
-	s := t.UTC().String() + "(" + strconv.Itoa(int(msec)) +")"
+	s := t.UTC().String() + "(" + strconv.Itoa(int(msec)) + ")"
 
 	return s
 }
 
-func ParseIsoTime(t string ) (result time.Time) {
+func ParseIsoTime(t string) (result time.Time) {
 	const layout = "2006-01-02T15:04:05Z"
 	result, err := time.Parse(layout, t)
 
@@ -41,10 +41,10 @@ func ParseIsoTime(t string ) (result time.Time) {
 	return result
 }
 
-func ParseIsoTimeToMs(isoTime string ) (timeMs int64) {
+func ParseIsoTimeToE6(isoTime string) (timeMs int64) {
 	timeObj := ParseIsoTime(isoTime)
 
-	timeMs = timeObj.UnixNano() / 1_000_000
+	timeMs = timeObj.UnixNano() / 1_000
 
 	return timeMs
 }

@@ -133,9 +133,9 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 				s := ""
 
 				if decoded.Type == "snapshot" {
-					s = ParseInstrumentSnapshot(decoded.Data, decoded.TimeStampMs)
+					s = ParseInstrumentSnapshot(decoded.Data, decoded.TimeStampE6)
 				} else if decoded.Type == "delta" {
-					s = ParseInstrumentDelta(decoded.Data, decoded.TimeStampMs)
+					s = ParseInstrumentDelta(decoded.Data, decoded.TimeStampE6)
 				} else {
 					log.Println("unknown instrument info type", string(message))
 				}
@@ -184,14 +184,14 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 			}
 			w.Close()
 			goto exit
-		/*
-		case <-ticker.C:
-			log.Println("ping")
-			c.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
-		 */
+			/*
+				case <-ticker.C:
+					log.Println("ping")
+					c.SetWriteDeadline(time.Now().Add(writeWait))
+					if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
+						return
+					}
+			*/
 		}
 	}
 
@@ -210,4 +210,3 @@ closeWait:
 exit:
 	log.Println("Logger End")
 }
-

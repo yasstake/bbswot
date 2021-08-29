@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 func TestDivideSecAndMs(t *testing.T) {
 	sec, msec := DivideSecAndMs(2_001)
 
@@ -20,7 +19,7 @@ func TestDivideSecAndMs(t *testing.T) {
 }
 
 func TestMsToTime(t *testing.T) {
-	timeObj := MsToTime(2_001)   // 1970/1/1 9:0:2 (JST)
+	timeObj := MsToTime(2_001) // 1970/1/1 9:0:2 (JST)
 
 	fmt.Println(timeObj)
 }
@@ -28,9 +27,9 @@ func TestMsToTime(t *testing.T) {
 func TestParseIsoTimeToMs(t *testing.T) {
 	const timeString = "1970-01-01T00:00:02.001Z"
 
-	timeMs := ParseIsoTimeToMs(timeString)
+	timeMs := ParseIsoTimeToE6(timeString)
 
-	if timeMs != 2_001 {
+	if timeMs != 2_001_000 {
 		t.Errorf("Time Parse mismatch %d, %d", 2001, timeMs)
 	}
 }
@@ -49,4 +48,3 @@ func TestDateMs(t *testing.T) {
 		t.Errorf("does not match")
 	}
 }
-

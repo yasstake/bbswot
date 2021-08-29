@@ -8,23 +8,12 @@ import (
 )
 
 type LiquidRec struct {
-    Id     int64       `json:"id"`           // "id":10334039,
-	Price  json.Number `json:"price"`        // "price":49490.5}
-	Volume json.Number `json:"qty"`          // "qty":1600,
-	Symbol string      `json:"symbol"`       // "symbol":"BTCUSD",
-	TimeStampMs   json.Number `json:"time"`  // "time":1630110808068,
-	Side   string      `json:"side"`         // "side":"Sell",
-}
-
-func (c *LiquidRec) ToString() (r string) {
-	msec, _ := c.TimeStampMs.Int64()
-
-	r += common.MsToPrintDate(msec)
-	r += c.Price.String() + " "
-	r += c.Volume.String() + " "
-	r += c.Side
-
-	return r
+	Id          int64       `json:"id"`     // "id":10334039,
+	Price       json.Number `json:"price"`  // "price":49490.5}
+	Volume      json.Number `json:"qty"`    // "qty":1600,
+	Symbol      string      `json:"symbol"` // "symbol":"BTCUSD",
+	TimeStampE3 json.Number `json:"time"`   // "time":1630110808068,
+	Side        string      `json:"side"`   // "side":"Sell",
 }
 
 func (c *LiquidRec) ToLog() (r string) {
@@ -39,9 +28,10 @@ func (c *LiquidRec) ToLog() (r string) {
 
 	price, _ := c.Price.Float64()
 	volume, _ := c.Volume.Float64()
-	time, _ := c.TimeStampMs.Int64()
+	time, _ := c.TimeStampE3.Int64()
+	time = time * 1_000
 
-	return MakeLogRec(action, time, price, volume, strconv.Itoa(int(c.Id)))       // enable ID version(for liquid)
+	return MakeWsLogRec(action, time, price, volume, strconv.Itoa(int(c.Id))) // enable ID version(for liquid)
 }
 
 type LiquidRecs []LiquidRec
@@ -93,4 +83,3 @@ func LiquidMessage(message string) (liquid LiquidRecs, err error) {
 	}
 	return liquid, nil
 }
-

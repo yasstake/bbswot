@@ -7,12 +7,12 @@ import (
 )
 
 type Order struct {
-	Price  json.Number `json:"price"`     // "price":"48608.50"
-	Symbol string      `json:"symbol"`    // "symbol":"BTCUSD"
-	Id     int64       `json:"id"`        // "id":486085000
-	Side   string      `json:"side"`      // "side":"Sell"
-	Size   json.Number `json:"size"`      // "size":409566
-	TimeStampMs   int64
+	Price       json.Number `json:"price"`  // "price":"48608.50"
+	Symbol      string      `json:"symbol"` // "symbol":"BTCUSD"
+	Id          int64       `json:"id"`     // "id":486085000
+	Side        string      `json:"side"`   // "side":"Sell"
+	Size        json.Number `json:"size"`   // "size":409566
+	TimeStampMs int64
 }
 
 func (c *Order) ToLog() string {
@@ -28,8 +28,8 @@ func (c *Order) ToLog() string {
 	price, _ := c.Price.Float64()
 	volume, _ := c.Size.Float64()
 
-	// return MakeLogRec(action, c.TimeStampMs, price, volume, strconv.Itoa(int(c.Id)))
-	return MakeLogRec(action, c.TimeStampMs, price, volume, "")
+	// return MakeWsLogRec(action, c.TimeStampE3, price, volume, strconv.Itoa(int(c.Id)))
+	return MakeWsLogRec(action, c.TimeStampMs, price, volume, "")
 }
 
 type SnapShot []Order
@@ -43,9 +43,9 @@ type Delta struct {
 func ParseOrderBookMessage(message Message) (result string) {
 	switch message.Type {
 	case "snapshot":
-		return ParseOrderBookSnapshot(message.Data, message.TimeStampMs)
+		return ParseOrderBookSnapshot(message.Data, message.TimeStampE6)
 	case "delta":
-		return ParseOrderBookDelta(message.Data, message.TimeStampMs)
+		return ParseOrderBookDelta(message.Data, message.TimeStampE6)
 	}
 
 	log.Fatalln("Unknown Message type", message.Type)
@@ -53,7 +53,7 @@ func ParseOrderBookMessage(message Message) (result string) {
 	return ""
 }
 
-func ParseOrderBookSnapshot(message json.RawMessage, timeMs int64) (result string) {
+func ParseOrderBookSnapshot(message json.RawMessage, timeE6 int64) (result string) {
 	var data SnapShot
 
 	err := json.Unmarshal(message, &data)
@@ -66,17 +66,17 @@ func ParseOrderBookSnapshot(message json.RawMessage, timeMs int64) (result strin
 		return ""
 	}
 
-	result = MakeLogRec(common.PARTIAL, timeMs, 0, 0, "")
+	result = MakeWsLogRec(common.PARTIAL, timeE6, 0, 0, "")
 
 	for i := 0; i < l; i++ {
-		data[i].TimeStampMs = timeMs
+		data[i].TimeStampMs = timeE6
 		result += data[i].ToLog()
 	}
 
 	return result
 }
 
-func ParseOrderBookDelta(message json.RawMessage, timeMs int64) (result string) {
+func ParseOrderBookDelta(message json.RawMessage, timeE6 int64) (result string) {
 	var data Delta
 	result = ""
 
@@ -87,19 +87,19 @@ func ParseOrderBookDelta(message json.RawMessage, timeMs int64) (result string) 
 
 	l := len(data.Insert)
 	for i := 0; i < l; i++ {
-		data.Insert[i].TimeStampMs = timeMs
+		data.Insert[i].TimeStampMs = timeE6
 		result += data.Insert[i].ToLog()
 	}
 
 	l = len(data.Update)
 	for i := 0; i < l; i++ {
-		data.Update[i].TimeStampMs = timeMs
+		data.Update[i].TimeStampMs = timeE6
 		result += data.Update[i].ToLog()
 	}
 
 	l = len(data.Delete)
 	for i := 0; i < l; i++ {
-		data.Delete[i].TimeStampMs = timeMs
+		data.Delete[i].TimeStampMs = timeE6
 		result += data.Delete[i].ToLog()
 	}
 

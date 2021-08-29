@@ -1,26 +1,41 @@
 package bb
 
 import (
-	common "bbswot/common"
 	"fmt"
 	"strconv"
 )
 
 /*
 var (
-	last_time  time.TimeStampMs
+	last_time  time.TimeStampE3
 	last_price float64
 )
 */
 
+var (
+	cacheLastTime  int64
+	cacheLastPrice float64
+	doCompress     bool
+)
 
+func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64, option string) (result string) {
+	var timeMs int64
+	var price float64
 
-func MakeLogRec(action int, timeMs int64, price float64, volume float64, option string) (result string) {
-	sec, msec :=  common.DivideSecAndMs(timeMs)
+	if doCompress {
+		timeMs = orgTimeMs - cacheLastTime
+		cacheLastTime = orgTimeMs
 
-	result = fmt.Sprintf("%d,%d%03d", action, sec, msec)
+		price = orgPrice - cacheLastPrice
+		cacheLastPrice = orgPrice
+	} else {
+		timeMs = orgTimeMs
+		price = orgPrice
+	}
 
-	priceString :=  strconv.FormatFloat(price, 'f', -1, 64)
+	result = fmt.Sprintf("%d,%d", action, timeMs)
+
+	priceString := strconv.FormatFloat(price, 'f', -1, 64)
 	result += ","
 	result += priceString
 
@@ -38,12 +53,34 @@ func MakeLogRec(action int, timeMs int64, price float64, volume float64, option 
 	return result
 }
 
-type LogPointer struct {
-	LastMilSec int64
-	LastPrice float64
-}
+func ParseWsLogRec(rec string) (rAction int, rTimeMs int64, rPrice float64, rVolume float64, rOption string) {
+	var (
+		action int
+		timeMs int64
+		price  float64
+		volume float64
+		option string
+	)
 
-func CompressLogRec(lastPointer LogPointer, action int, timeMs int64, price float64, volume float64, option string) (c_action int, c_timeMs int64, c_price float64, c_volume float64, c_option string) {
+	fmt.Sscanf(rec, "%d,%d,%f,%f,%s", &action, &timeMs, &price, &volume, &option)
 
-	return c_action, c_timeMs, c_price, c_volume,c_option
+	if 1_000_000_000_000 < timeMs {
+		cacheLastTime = timeMs
+		rTimeMs = timeMs
+
+		cacheLastPrice = price
+		rPrice = price
+	} else {
+		rTimeMs = cacheLastTime + timeMs
+		cacheLastTime = rTimeMs
+
+		rPrice = cacheLastPrice + price
+		cacheLastPrice = rPrice
+	}
+
+	rAction = action
+	rVolume = volume
+	rOption = option
+
+	return rAction, rTimeMs, rPrice, rVolume, rOption
 }
