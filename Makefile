@@ -4,7 +4,6 @@ BINDIR = ./bin
 LOGGER_BINARY=$(BINDIR)/logger
 LOGGER_SRC=./cmd/logger/logger.go
 
-
 all:$(LOGGER_BINARY)
 
 $(BINDIR):
