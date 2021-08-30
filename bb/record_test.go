@@ -43,10 +43,12 @@ func TestParseLogRec(t *testing.T) {
 
 	rAction, rTimeMs, rPrice, rVolume, rOption = ParseWsLogRec(s4)
 	log.Println("[DECODE]", rAction, rTimeMs, rPrice, rVolume, rOption)
-}
 
-// For bulk download transaction log records
-// wget https://public.bybit.com/trading/BTCUSD/BTCUSD2021-08-25.csv.gz
-// Format:
-// timestamp(e6)    ,symbol,side,size,price,  tickDirection,trdMatchID                           ,grossValue,homeNotional,foreignNotional
-// 1621036794.507791,BTCUSD,Sell,10  ,49910.0,ZeroMinusTick,c00e7c56-feb6-51ea-a24e-c827583fb5c5 ,20036.0   ,10          ,0.00020036
+	//
+	s5 := "2,1630251048311175,48355.5,524074"
+	rAction, rTimeMs, rPrice, rVolume, rOption = ParseWsLogRec(s5)
+	log.Println("[DECODE]", rAction, rTimeMs, rPrice, rVolume, rOption)
+	s6 := "4,1630251051622,48362.5,6000,c24c9274-20a0-5bda-8af6-6abeda118798"
+	rAction, rTimeMs, rPrice, rVolume, rOption = ParseWsLogRec(s6)
+	log.Println("[DECODE]", rAction, rTimeMs, rPrice, rVolume, rOption)
+}

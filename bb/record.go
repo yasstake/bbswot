@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/labstack/gommon/log"
+	"math"
 	"strconv"
 )
 
@@ -59,7 +60,12 @@ func ParseArchivedLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64
 		log.Error("Format error", r[3])
 	}
 	rPrice, err = strconv.ParseFloat(r[4], 64)
-	rTransactionId = r[6]
+
+	if 7 <= len(r) {
+		rTransactionId = r[6]
+	} else {
+		rTransactionId = ""
+	}
 
 	return rAction, rTimeE6, rPrice, rVolume, rTransactionId
 }
@@ -100,34 +106,64 @@ func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64,
 	return result
 }
 
-func ParseWsLogRec(rec string) (rAction int, rTimeMs int64, rPrice float64, rVolume float64, rOption string) {
-	var (
-		action int
-		timeMs int64
-		price  float64
-		volume float64
-		option string
-	)
+//
+// Sample record
+// 5,1630205955793000,48253,209,10342343
+func ParseWsLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64, rVolume float64, rOption string) {
+	buffer := bytes.NewBufferString(rec)
 
-	fmt.Sscanf(rec, "%d,%d,%f,%f,%s", &action, &timeMs, &price, &volume, &option)
+	reader := csv.NewReader(buffer)
 
-	if 1_000_000_000_000 < timeMs {
-		cacheLastTime = timeMs
-		rTimeMs = timeMs
+	r, err := reader.Read()
+	if err != nil {
+		log.Error(err)
+	}
+
+	if len(r) < 4 {
+		log.Error("too shot format", r)
+	}
+
+	rAction, err = strconv.Atoi(r[0])
+	if err != nil {
+		log.Error("Id Parse Error", err, r[0])
+	}
+
+	timeE6, err := strconv.ParseInt(r[1], 10, 64)
+	if err != nil {
+		log.Error("TimeE6 Parse Error", err, r[1])
+	}
+
+	price, err := strconv.ParseFloat(r[2], 64)
+	if err != nil {
+		log.Error("Price  error", r[2])
+	}
+
+	if 1_000_000_000_000 < math.Abs(float64(timeE6)) {
+		// uncompressed mode
+		cacheLastTime = timeE6
+		rTimeE6 = timeE6
 
 		cacheLastPrice = price
 		rPrice = price
 	} else {
-		rTimeMs = cacheLastTime + timeMs
-		cacheLastTime = rTimeMs
+		// Diff mode (compressed)
+		rTimeE6 = cacheLastTime + timeE6
+		cacheLastTime = rTimeE6
 
 		rPrice = cacheLastPrice + price
 		cacheLastPrice = rPrice
 	}
 
-	rAction = action
-	rVolume = volume
-	rOption = option
+	rVolume, err = strconv.ParseFloat(r[3], 64)
+	if err != nil {
+		log.Error("Price  error", r[3])
+	}
 
-	return rAction, rTimeMs, rPrice, rVolume, rOption
+	if 5 <= len(r) {
+		rOption = r[4]
+	} else {
+		rOption = ""
+	}
+
+	return rAction, rTimeE6, rPrice, rVolume, rOption
 }

@@ -7,3 +7,9 @@ func TestArchiveLogLoad(t *testing.T) {
 
 	ArchiveLogLoad(file)
 }
+
+func TestWsLogLoad(t *testing.T) {
+	const file = "../TEST_DATA/2021-08-30T02-31-26.log.gz"
+
+	WsLogLoad(file)
+}
