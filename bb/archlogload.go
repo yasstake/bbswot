@@ -41,11 +41,13 @@ func WsLogLoad(file string) {
 	log.Println("---start--")
 	for stream.Scan() {
 		rec := stream.Text()
-		rAction, rTimeMs, rPrice, rVolume, rOption := ParseWsLogRec(rec)
-		log.Print(rAction, " ", rTimeMs, " ", rPrice, " ", rVolume, " ", rOption, "  [", rec, "]")
+		rAction, rTimeE6, rPrice, rVolume, rOption := ParseWsLogRec(rec)
+		log.Print(rAction, " ", rTimeE6, " ", rPrice, " ", rVolume, " ", rOption, "  [", rec, "]")
 
 		if rAction == common.TRADE_BUY || rAction == common.TRADE_SELL {
-			db.WriteTradePointDb(writer, rAction, rTimeMs, rPrice, rVolume, rOption)
+			db.WriteTradePointDb(writer, rAction, rTimeE6, rPrice, rVolume, rOption)
+		} else if rAction == common.PARTIAL || rAction == common.UPDATE_BUY || rAction == common.UPDATE_SELL {
+			db.WriteBoardPointDb(writer, rAction, rTimeE6, rPrice, rVolume)
 		}
 
 		recordNumber += 1

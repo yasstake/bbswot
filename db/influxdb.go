@@ -7,6 +7,7 @@ import (
 	"github.com/influxdata/influxdb-client-go/api"
 	"github.com/labstack/gommon/log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -44,14 +45,29 @@ func NewQueryAPI(client influxdb2.Client) api.QueryAPI {
 	return api
 }
 
-func WritePointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64, option string) {
+// TODO: Make partial message periodically (every 3-4 min)
+func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64) {
+	t := time.Unix(0, timestampE6*1_000)
 
-	if action == common.UPDATE_BUY || action == common.UPDATE_SELL {
+	var side string
+	var priceStr string
 
-	} else if action == common.TRADE_BUY || action == common.TRADE_SELL {
-
+	if action == common.UPDATE_BUY {
+		side = "Buy"
+	} else if action == common.UPDATE_SELL {
+		side = "Sell"
 	} else if action == common.PARTIAL {
+		side = "Partial"
 	}
+
+	priceStr = strconv.FormatInt(int64(price*10), 10)
+
+	p := influxdb2.NewPoint("board",
+		map[string]string{"action": side, "price": priceStr},
+		map[string]interface{}{"price": price, "size": size},
+		t)
+
+	w.WritePoint(p)
 }
 
 func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64, execId string) {
@@ -98,20 +114,6 @@ func UniqLiquidTimeStampE9(timestampE6 int64, id string) (timeE9 int64) {
 
 	return timeE9
 }
-
-/*
-func WriteTradeDb(w api.WriteAPI, time_stamp time.Time, id int, side string, price float64, size float64) {
-
-	id_string := strconv.Itoa(id)
-
-	p := influxdb2.NewPoint("order",
-		map[string]string{"id": id_string},
-		map[string]interface{}{"tran": side, "price": price, "size": size},
-		time_stamp)
-
-	w.WritePoint(p)
-}
-*/
 
 const IdWidth = 1_000_000
 

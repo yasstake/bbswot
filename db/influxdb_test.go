@@ -37,6 +37,17 @@ func TestWriteTradePointDb(t *testing.T) {
 	client.Close()
 }
 
+func TestWriteBoardPointDb(t *testing.T) {
+	client := OpenClient()
+	api := NewWriteAPI(client)
+
+	WriteBoardPointDb(api, common.UPDATE_BUY, 1630209803100000, 47862.5, 100.5)
+	WriteBoardPointDb(api, common.UPDATE_SELL, 1630209803200000, 47863, 100)
+	WriteBoardPointDb(api, common.PARTIAL, 1630209803300000, 0, 0)
+	api.Flush()
+	client.Close()
+}
+
 func TestUniqExecTimeStampE9(t *testing.T) {
 	timeE9 := UniqExecTimeStampE9(1_000_123_456_789, "9fd6a16a-bfe5-580d-9c7c-000000001")
 
