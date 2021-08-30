@@ -6,6 +6,16 @@ import (
 	"testing"
 )
 
+// for archived log
+
+func TestParseArchivedLogRec(t *testing.T) {
+	const bblogTestData = "1630281599.872,BTCUSD,Buy,5000,48815.5,ZeroMinusTick,fc7b42fa-0b1a-50d1-9a9c-cfc70a5a9b66,10242753.0,5000,0.10242753"
+
+	action, orgTimeMs, orgPrice, volume, option := ParseArchivedLogRec(bblogTestData)
+
+	log.Println(action, orgTimeMs, orgPrice, volume, option)
+}
+
 // for WS log records
 
 func TestMakeLogRec(t *testing.T) {

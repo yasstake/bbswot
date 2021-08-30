@@ -21,6 +21,10 @@ func MsToTime(msec int64) time.Time {
 	return tm
 }
 
+func TimeSecToE6(sec int64, msec int64) int64 {
+	return sec*1_000_000 + msec*1_000
+}
+
 // MsToPrintDate Convert msec to printable format [for debugging]
 func MsToPrintDate(msec int64) string {
 	t := MsToTime(msec)

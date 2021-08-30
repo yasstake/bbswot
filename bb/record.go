@@ -1,7 +1,11 @@
 package bb
 
 import (
+	"bbswot/common"
+	"bytes"
+	"encoding/csv"
 	"fmt"
+	"github.com/labstack/gommon/log"
 	"strconv"
 )
 
@@ -21,6 +25,46 @@ var (
 func EnableLogCompress() {
 	doCompress = true
 }
+
+//////////// Archived Log records ///////////
+
+func ParseArchivedLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64, rVolume float64, rTransactionId string) {
+	buffer := bytes.NewBufferString(rec)
+
+	reader := csv.NewReader(buffer)
+
+	r, err := reader.Read()
+	if err != nil {
+		log.Error(err)
+	}
+
+	if len(r) < 7 {
+		log.Error("too shot format", r)
+	}
+	var sec, msec int64
+	fmt.Sscanf(r[0], "%d.%d", &sec, &msec)
+	rTimeE6 = common.TimeSecToE6(sec, msec)
+
+	actionName := r[2]
+	if actionName == common.TRADE_BUY_STR {
+		rAction = common.TRADE_BUY
+	} else if actionName == common.TRADE_SELL_STR {
+		rAction = common.TRADE_SELL
+	} else {
+		log.Error("unknown action", actionName)
+	}
+
+	rVolume, err = strconv.ParseFloat(r[3], 64)
+	if err != nil {
+		log.Error("Format error", r[3])
+	}
+	rPrice, err = strconv.ParseFloat(r[4], 64)
+	rTransactionId = r[6]
+
+	return rAction, rTimeE6, rPrice, rVolume, rTransactionId
+}
+
+//////////// WS log records ///////////////
 
 func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64, option string) (result string) {
 	var timeMs int64

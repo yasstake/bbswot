@@ -1,16 +1,15 @@
 package common
 
-
 const PARTIAL = 1
-
 
 const UPDATE_BUY = 2
 
-
 const UPDATE_SELL = 3
-
+const TRADE_SELL_STR = "Sell"
 
 const TRADE_BUY = 4
+const TRADE_BUY_STR = "Buy"
+
 const TRADE_BUY_LIQUID = 5
 
 const TRADE_SELL = 6

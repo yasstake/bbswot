@@ -1,49 +1,105 @@
 package db
 
 import (
+	"bbswot/common"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/influxdata/influxdb-client-go/api"
+	"github.com/labstack/gommon/log"
 	"os"
-	"strconv"
 	"time"
 )
 
 var INFLUXDB_KEY string
+var INFLUXDB_BUCKET string
+var INFLUXDB_ORG string
+var INFLUXDB_URL string
 
 func init() {
 	INFLUXDB_KEY = os.Getenv("INFLUXDB_KEY")
+	INFLUXDB_BUCKET = "btc"
+	INFLUXDB_ORG = "bb"
+	INFLUXDB_URL = "http://localhost:8086"
 }
 
 func OpenClient() influxdb2.Client {
 	// Store the URL of your InfluxDB instance
-	url := "http://localhost:8086"
-
-	//client := influxdb2.NewClient(url, token)
 	options := influxdb2.DefaultOptions()
 	options.SetBatchSize(5000)
 	options.SetPrecision(1)
-	client := influxdb2.NewClientWithOptions(url, INFLUXDB_KEY, options)
+	client := influxdb2.NewClientWithOptions(INFLUXDB_URL, INFLUXDB_KEY, options)
 
 	return client
 }
 
-func NewWriteApi(client influxdb2.Client) api.WriteApi {
-	bucket := "btc"
-	org := "bb"
-
-	//writeAPI := client.WriteAPIBlocking(org, bucket)
-	writeAPI := client.WriteAPI(org, bucket)
+func NewWriteAPI(client influxdb2.Client) api.WriteAPI {
+	writeAPI := client.WriteAPI(INFLUXDB_ORG, INFLUXDB_BUCKET)
 
 	return writeAPI
 }
 
-func NewQueryApi(client influxdb2.Client) api.QueryApi {
+func NewQueryAPI(client influxdb2.Client) api.QueryAPI {
 	api := client.QueryAPI("bb")
 
 	return api
 }
 
+func WritePointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64, option string) {
+
+	if action == common.UPDATE_BUY || action == common.UPDATE_SELL {
+
+	} else if action == common.TRADE_BUY || action == common.TRADE_SELL {
+
+	} else if action == common.PARTIAL {
+	}
+}
+
+func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64, execId string) {
+	uniqTime := UniqExecTimeStampE9(timestampE6, execId)
+	t := time.Unix(0, uniqTime)
+
+	var side string
+	if action == common.TRADE_BUY {
+		side = common.TRADE_BUY_STR
+	} else if action == common.TRADE_SELL {
+		side = common.TRADE_SELL_STR
+	} else {
+		log.Error("unknown action no", action)
+	}
+
+	p := influxdb2.NewPoint("exec",
+		map[string]string{},
+		map[string]interface{}{"tran": side, "price": price, "size": size},
+		t)
+
+	w.WritePoint(p)
+}
+
+const FloorUnit = 1_000
+const ConvertE6toE9 = 1_000
+
+func FloorTimeStampE6ToE9(timeStampE6 int64) (timeE9 int64) {
+	t := int64(timeStampE6 / FloorUnit)
+	t = t * FloorUnit * ConvertE6toE9
+
+	return t
+}
+
+func UniqExecTimeStampE9(timestampE6 int64, id string) (timeE9 int64) {
+	timeE9 = FloorTimeStampE6ToE9(timestampE6)
+	timeE9 = timeE9 + ExecIdToInt(id)
+
+	return timeE9
+}
+
+func UniqLiquidTimeStampE9(timestampE6 int64, id string) (timeE9 int64) {
+	timeE9 = FloorTimeStampE6ToE9(timestampE6)
+	timeE9 = timeE9 + LiquidIdToInt(id)
+
+	return timeE9
+}
+
+/*
 func WriteTradeDb(w api.WriteAPI, time_stamp time.Time, id int, side string, price float64, size float64) {
 
 	id_string := strconv.Itoa(id)
@@ -55,13 +111,24 @@ func WriteTradeDb(w api.WriteAPI, time_stamp time.Time, id int, side string, pri
 
 	w.WritePoint(p)
 }
+*/
 
-func IdToInt(id string) int64 {
+const IdWidth = 1_000_000
+
+// ExecIdToInt
+// 9fd6a16a-bfe5-580d-9c7c-0168aeb4c93e
+// Parse execute id and convert it to 0-1_000_000 numbers
+func ExecIdToInt(id string) int64 {
 	var id1, id2, id3, id4, id5 int64
 
 	fmt.Sscanf(id, "%x-%x-%x-%x-%x", &id1, &id2, &id3, &id4, &id5)
 
-	return (id5) % 1_000_000
-	//return (id1 + id2 + id3 + id4 + id5) % 1_000_000
-	//return (id1*0x10000000 + id2*0x1000000 + id3*0x100000 + id4*0x10000 + id5) % 1_000_000
+	return (id5) % IdWidth
+}
+
+func LiquidIdToInt(id string) int64 {
+	var id1 int64
+	fmt.Sscanf(id, "%d", &id1)
+
+	return (id1) % IdWidth
 }

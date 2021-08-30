@@ -24,6 +24,16 @@ func TestMsToTime(t *testing.T) {
 	fmt.Println(timeObj)
 }
 
+func TestTimeSecToE6(t *testing.T) {
+	sec := int64(123)
+	msec := int64(456)
+	timeE6 := TimeSecToE6(sec, msec)
+
+	if timeE6 != 123456000 {
+		t.Error("mismatch", timeE6, sec, msec)
+	}
+}
+
 func TestParseIsoTimeToMs(t *testing.T) {
 	const timeString = "1970-01-01T00:00:02.001Z"
 
