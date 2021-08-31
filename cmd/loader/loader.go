@@ -2,10 +2,23 @@ package main
 
 import (
 	"bbswot/bb"
+	"flag"
+	"log"
 )
 
 func main() {
-	const file = "./TEST_DATA/2021-08-30T02-31-26.log.gz"
+	flag.Parse()
+	files := flag.Args()
 
-	bb.WsLogLoad(file)
+	for _, file := range files {
+		log.Println("[loading..]", file)
+		archiveLogMode := bb.CheckArchiveLog(file)
+		if archiveLogMode {
+			log.Println("Loading Archive Log file")
+			bb.ArchiveLogLoad(file)
+		} else {
+			log.Println("Loading WS Log file")
+			bb.WsLogLoad(file)
+		}
+	}
 }

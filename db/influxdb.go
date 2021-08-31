@@ -63,7 +63,7 @@ func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 	priceStr = strconv.FormatInt(int64(price*10), 10)
 
 	p := influxdb2.NewPoint("board",
-		map[string]string{"action": side, "price": priceStr},
+		map[string]string{"side": side, "price": priceStr},
 		map[string]interface{}{"price": price, "size": size},
 		t)
 
@@ -85,7 +85,43 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 
 	p := influxdb2.NewPoint("exec",
 		map[string]string{},
-		map[string]interface{}{"tran": side, "price": price, "size": size},
+		map[string]interface{}{"side": side, "price": price, "size": size},
+		t)
+
+	w.WritePoint(p)
+}
+
+// WriteOpenInterests
+// Write Open interests at the point
+func WriteOpenInterests(w api.WriteAPI, timestampE6 int64, openInterest int64) {
+	t := time.Unix(0, FloorTimeStampE6ToE9(timestampE6))
+
+	p := influxdb2.NewPoint("oi",
+		map[string]string{},
+		map[string]interface{}{"size": openInterest},
+		t)
+
+	w.WritePoint(p)
+}
+
+func WriteFundingRate(w api.WriteAPI, timestampE6 int64, fundingRate float64) {
+	t := time.Unix(0, FloorTimeStampE6ToE9(timestampE6))
+
+	p := influxdb2.NewPoint("funding",
+		map[string]string{"current": ""},
+		map[string]interface{}{"rate": fundingRate},
+		t)
+
+	w.WritePoint(p)
+}
+
+func WritePredictedFundingRate(w api.WriteAPI, timestampE6 int64, fundingRate float64, nextTimeE6 int64) {
+	t := time.Unix(0, FloorTimeStampE6ToE9(timestampE6))
+	next_time := time.Unix(0, FloorTimeStampE6ToE9(nextTimeE6))
+
+	p := influxdb2.NewPoint("funding",
+		map[string]string{"predict": ""},
+		map[string]interface{}{"rate": fundingRate, "next_time": next_time},
 		t)
 
 	w.WritePoint(p)

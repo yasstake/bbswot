@@ -3,8 +3,8 @@ package bb
 import (
 	"bbswot/common"
 	"encoding/json"
-	"fmt"
 	"log"
+	"strconv"
 )
 
 type InstrumentDelta struct {
@@ -137,10 +137,9 @@ func (c *Instrument) ToLog() (result string) {
 
 	if c.PredictedFundingRate != 0 {
 		if c.NextFundingTime != "" {
-			timeMs := common.ParseIsoTimeToE6(c.NextFundingTime)
-			sec, msec := common.DivideSecAndMs(timeMs)
-			nextFundingTime := fmt.Sprintf("%d.%d", sec, msec)
-			result += MakeWsLogRec(common.PREDICTED_FUNDING_RATE, t, 0, float64(c.PredictedFundingRate), nextFundingTime)
+			timeE6 := common.ParseIsoTimeToE6(c.NextFundingTime)
+			timeE6String := strconv.FormatInt(timeE6, 10)
+			result += MakeWsLogRec(common.PREDICTED_FUNDING_RATE, t, 0, float64(c.PredictedFundingRate), timeE6String)
 		}
 	}
 

@@ -98,6 +98,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		}
 	}()
 
+	// message receive loop (go routine)
 	go func() {
 		var messageCount int
 		var boardUpdateCount int
@@ -160,8 +161,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 	subscribe(CHANNEL_TRADE)
 	subscribe(CHANNEL_INFO)
 
-	// ticker := time.NewTicker(pingPeriod)
-
+	// main message loop
 	for {
 		select {
 		case <-peerReset:
@@ -184,14 +184,6 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 			}
 			w.Close()
 			goto exit
-			/*
-				case <-ticker.C:
-					log.Println("ping")
-					c.SetWriteDeadline(time.Now().Add(writeWait))
-					if err := c.WriteMessage(websocket.PingMessage, nil); err != nil {
-						return
-					}
-			*/
 		}
 	}
 
