@@ -3,10 +3,14 @@ package bb
 import (
 	"bbswot/common"
 	"bbswot/db"
+	"github.com/influxdata/influxdb-client-go/api"
 	"log"
+	"strconv"
 	"strings"
 )
 
+// ArchiveLogLoad
+// Load Archive log from Bybit website
 func ArchiveLogLoad(file string) {
 	client := db.OpenClient()
 	defer client.Close()
@@ -29,6 +33,22 @@ func ArchiveLogLoad(file string) {
 	log.Printf("Log loaded %s (%d)\n", file, recordNumber)
 }
 
+func flushBoardBuffer(writer api.WriteAPI, timeE6 int64) {
+	db.WriteBoardPointDb(writer, common.PARTIAL, timeE6, 0, 0)
+
+	writeBoardBuffer(writer, common.UPDATE_BUY, timeE6, buyBoardBuffer)
+	writeBoardBuffer(writer, common.UPDATE_SELL, timeE6, sellBoardBuffer)
+
+	buyBoardBuffer.Reset()
+	sellBoardBuffer.Reset()
+}
+
+func writeBoardBuffer(writer api.WriteAPI, action int, timeE6 int64, board Board) {
+	for price, volume := range board {
+		db.WriteBoardPointDb(writer, action, timeE6, price, volume)
+	}
+}
+
 // WsLogLoad
 // Load Web service log to influxdb
 func WsLogLoad(file string) {
@@ -46,6 +66,11 @@ func WsLogLoad(file string) {
 	var frNumber int64
 
 	log.Println("---start--")
+	buyBoardBuffer.Reset()
+	sellBoardBuffer.Reset()
+	var lastTimeE6 int64
+	const timeIntervalE6 = 1_000_000 * 60 * 3
+
 	for stream.Scan() {
 		rec := stream.Text()
 		rAction, rTimeE6, rPrice, rVolume, rOption := ParseWsLogRec(rec)
@@ -54,6 +79,17 @@ func WsLogLoad(file string) {
 			db.WriteTradePointDb(writer, rAction, rTimeE6, rPrice, rVolume, rOption)
 			execNumber += 1
 		} else if rAction == common.PARTIAL || rAction == common.UPDATE_BUY || rAction == common.UPDATE_SELL {
+			if rAction == common.PARTIAL {
+				sellBoardBuffer.Reset()
+				buyBoardBuffer.Reset()
+			}
+			if rAction == common.UPDATE_BUY {
+				buyBoardBuffer.Add(rPrice, rVolume)
+			}
+			if rAction == common.UPDATE_SELL {
+				sellBoardBuffer.Add(rPrice, rVolume)
+			}
+
 			// TODO: write snapshot every 3-5 min
 			db.WriteBoardPointDb(writer, rAction, rTimeE6, rPrice, rVolume)
 			boardNumber += 1
@@ -64,7 +100,15 @@ func WsLogLoad(file string) {
 			db.WriteFundingRate(writer, rTimeE6, rVolume)
 			frNumber += 1
 		} else if rAction == common.PREDICTED_FUNDING_RATE {
+			timeE6, _ := strconv.ParseInt(rOption, 10, 64)
+			db.WritePredictedFundingRate(writer, rTimeE6, rVolume, timeE6)
 			log.Println("[NEXT FR", rTimeE6, rVolume, rOption)
+		}
+
+		if timeIntervalE6 < rTimeE6-lastTimeE6 && boardNumber != 0 {
+			flushBoardBuffer(writer, rTimeE6)
+
+			lastTimeE6 = rTimeE6
 		}
 
 		recordNumber += 1

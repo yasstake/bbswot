@@ -8,6 +8,15 @@ func TestArchiveLogLoad(t *testing.T) {
 	ArchiveLogLoad(file)
 }
 
+/*
+func TestWriteBoardBuffer(t *testing.T) {
+	buyBoardBuffer.Reset()
+	buyBoardBuffer.Add(10.1, 10)
+	buyBoardBuffer.Add(20.1, 10)
+	writeBoardBuffer(nil, buyBoardBuffer)
+}
+*/
+
 func TestWsLogLoad(t *testing.T) {
 	const file = "../TEST_DATA/2021-08-30T02-31-26.log.gz"
 

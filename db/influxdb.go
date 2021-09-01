@@ -20,7 +20,13 @@ func init() {
 	INFLUXDB_KEY = os.Getenv("INFLUXDB_KEY")
 	INFLUXDB_BUCKET = "btc"
 	INFLUXDB_ORG = "bb"
-	INFLUXDB_URL = "http://localhost:8086"
+	url := os.Getenv("INFLUXDB_URL")
+	if url != "" {
+		INFLUXDB_URL = url
+
+	} else {
+		INFLUXDB_URL = "http://localhost:8086"
+	}
 }
 
 func OpenClient() influxdb2.Client {
