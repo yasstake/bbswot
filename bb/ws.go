@@ -46,7 +46,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		log.Fatal("dial:", err)
 	}
 
-	// c.SetReadDeadline(time.Now().Add(pongWait))
+	// c.SetReadDeadline(time.Now().Set(pongWait))
 	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	//websocket.PingMessage

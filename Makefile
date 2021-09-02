@@ -39,3 +39,9 @@ createbucket:
 
 download:
 	wget -O ./TEST_DATA/BTCUSD2021-08-29.csv.gz https://public.bybit.com/trading/BTCUSD/BTCUSD2021-08-29.csv.gz
+
+
+deletedata:
+	influx delete --bucket btc --start 1970-01-01T00:00:00Z --stop 2021-09-02T18:54:09Z
+
+

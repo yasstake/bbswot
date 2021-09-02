@@ -11,8 +11,8 @@ func TestArchiveLogLoad(t *testing.T) {
 /*
 func TestWriteBoardBuffer(t *testing.T) {
 	buyBoardBuffer.Reset()
-	buyBoardBuffer.Add(10.1, 10)
-	buyBoardBuffer.Add(20.1, 10)
+	buyBoardBuffer.Set(10.1, 10)
+	buyBoardBuffer.Set(20.1, 10)
 	writeBoardBuffer(nil, buyBoardBuffer)
 }
 */

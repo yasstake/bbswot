@@ -68,7 +68,8 @@ func WsLogLoad(file string) {
 	log.Println("---start--")
 	buyBoardBuffer.Reset()
 	sellBoardBuffer.Reset()
-	var lastTimeE6 int64
+	var lastFlushTimeE6 int64
+
 	const timeIntervalE6 = 1_000_000 * 60 * 3
 
 	for stream.Scan() {
@@ -84,10 +85,10 @@ func WsLogLoad(file string) {
 				buyBoardBuffer.Reset()
 			}
 			if rAction == common.UPDATE_BUY {
-				buyBoardBuffer.Add(rPrice, rVolume)
+				buyBoardBuffer.Set(rPrice, rVolume)
 			}
 			if rAction == common.UPDATE_SELL {
-				sellBoardBuffer.Add(rPrice, rVolume)
+				sellBoardBuffer.Set(rPrice, rVolume)
 			}
 
 			// TODO: write snapshot every 3-5 min
@@ -105,10 +106,10 @@ func WsLogLoad(file string) {
 			log.Println("[NEXT FR", rTimeE6, rVolume, rOption)
 		}
 
-		if timeIntervalE6 < rTimeE6-lastTimeE6 && boardNumber != 0 {
+		if timeIntervalE6 < rTimeE6-lastFlushTimeE6 && boardNumber != 0 {
 			flushBoardBuffer(writer, rTimeE6)
 
-			lastTimeE6 = rTimeE6
+			lastFlushTimeE6 = rTimeE6
 		}
 
 		recordNumber += 1
