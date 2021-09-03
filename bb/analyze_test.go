@@ -1,6 +1,8 @@
-package db
+package bb
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTraverseDb(t *testing.T) {
 	query5dAll := `from(bucket: "btc") |> range(start: -5d) |> limit(n: 10)`
@@ -34,4 +36,30 @@ from(bucket: "btc")
 
 `
 	TraverseDb(query)
+}
+
+func TestTraverseDb4(t *testing.T) {
+	query := `
+from(bucket: "btc")
+  |> range(start: -5d)
+  |> filter(fn: (r) => r["_measurement"] == "board")
+  |> filter(fn: (r) => r["_field"] == "price" or r["_field"] == "size" or r["_field"] == "side")
+  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+
+`
+	TraverseDb(query)
+}
+func TestCountDb(t *testing.T) {
+	query := `
+from(bucket: "btc")
+  |> range(start: -5d)
+  |> filter(fn: (r) => r["_measurement"] == "board")
+  |> filter(fn: (r) => r["_field"] == "price")
+  |> count(column: "_value")
+`
+	CountDb(query)
+}
+
+func TestFindEdgePrice(t *testing.T) {
+	FindEdgePrice()
 }

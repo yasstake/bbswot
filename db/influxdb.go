@@ -17,10 +17,14 @@ var INFLUXDB_ORG string
 var INFLUXDB_URL string
 
 func init() {
-	INFLUXDB_KEY = os.Getenv("INFLUXDB_KEY")
+	INFLUXDB_KEY = os.Getenv("INFLUX_TOKEN")
+	if INFLUXDB_KEY == "" {
+		log.Printf("[warning] no $INFLUX_TOKEN")
+	}
+
 	INFLUXDB_BUCKET = "btc"
 	INFLUXDB_ORG = "bb"
-	url := os.Getenv("INFLUXDB_URL")
+	url := os.Getenv("INFLUX_HOST")
 	if url != "" {
 		INFLUXDB_URL = url
 
@@ -56,7 +60,7 @@ func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 	t := time.Unix(0, timestampE6*1_000)
 
 	var side string
-	var priceStr string
+	priceStr := strconv.FormatInt(int64(price*10), 10)
 
 	if action == common.UPDATE_BUY {
 		side = "Buy"
@@ -64,9 +68,8 @@ func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 		side = "Sell"
 	} else if action == common.PARTIAL {
 		side = "Partial"
+		priceStr = "PARTIAL"
 	}
-
-	priceStr = strconv.FormatInt(int64(price*10), 10)
 
 	p := influxdb2.NewPoint("board",
 		map[string]string{"side": side, "pstr": priceStr},

@@ -44,7 +44,7 @@ func flushBoardBuffer(writer api.WriteAPI, timeE6 int64) {
 }
 
 func writeBoardBuffer(writer api.WriteAPI, action int, timeE6 int64, board Board) {
-	for price, volume := range board {
+	for price, volume := range board.Data() {
 		db.WriteBoardPointDb(writer, action, timeE6, price, volume)
 	}
 }
@@ -68,7 +68,9 @@ func WsLogLoad(file string) {
 	log.Println("---start--")
 	buyBoardBuffer.Reset()
 	sellBoardBuffer.Reset()
-	var lastFlushTimeE6 int64
+
+	var lastFlushTime int64
+	var intervalDiff int64
 
 	const timeIntervalE6 = 1_000_000 * 60 * 3
 
@@ -80,6 +82,14 @@ func WsLogLoad(file string) {
 			db.WriteTradePointDb(writer, rAction, rTimeE6, rPrice, rVolume, rOption)
 			execNumber += 1
 		} else if rAction == common.PARTIAL || rAction == common.UPDATE_BUY || rAction == common.UPDATE_SELL {
+			// flush entire board periodically
+			intervalDiff = rTimeE6 % timeIntervalE6
+
+			if intervalDiff < 1_000_000 && 1_000_000 < (rTimeE6-lastFlushTime) {
+				flushBoardBuffer(writer, rTimeE6)
+				lastFlushTime = rTimeE6
+			}
+
 			if rAction == common.PARTIAL {
 				sellBoardBuffer.Reset()
 				buyBoardBuffer.Reset()
@@ -91,7 +101,6 @@ func WsLogLoad(file string) {
 				sellBoardBuffer.Set(rPrice, rVolume)
 			}
 
-			// TODO: write snapshot every 3-5 min
 			db.WriteBoardPointDb(writer, rAction, rTimeE6, rPrice, rVolume)
 			boardNumber += 1
 		} else if rAction == common.OPEN_INTEREST {
@@ -104,12 +113,6 @@ func WsLogLoad(file string) {
 			timeE6, _ := strconv.ParseInt(rOption, 10, 64)
 			db.WritePredictedFundingRate(writer, rTimeE6, rVolume, timeE6)
 			log.Println("[NEXT FR", rTimeE6, rVolume, rOption)
-		}
-
-		if timeIntervalE6 < rTimeE6-lastFlushTimeE6 && boardNumber != 0 {
-			flushBoardBuffer(writer, rTimeE6)
-
-			lastFlushTimeE6 = rTimeE6
 		}
 
 		recordNumber += 1
