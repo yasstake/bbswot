@@ -55,7 +55,6 @@ func NewQueryAPI(client influxdb2.Client) api.QueryAPI {
 	return api
 }
 
-// TODO: Make partial message periodically (every 3-4 min)
 func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64) {
 	t := time.Unix(0, timestampE6*1_000)
 
@@ -69,6 +68,7 @@ func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 	} else if action == common.PARTIAL {
 		side = "Partial"
 		priceStr = "PARTIAL"
+		log.Print("[PARTIAL]", common.TimeE6ToString(timestampE6))
 	}
 
 	p := influxdb2.NewPoint("board",

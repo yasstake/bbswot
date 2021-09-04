@@ -24,6 +24,12 @@ func TestMsToTime(t *testing.T) {
 	fmt.Println(timeObj)
 }
 
+func TestTimeE6ToTime(t *testing.T) {
+	timeObj := TimeE6ToTime(2_001_000) // 1970/1/1 9:0:2 (JST)
+
+	fmt.Println(timeObj)
+}
+
 func TestTimeSecToE6(t *testing.T) {
 	sec := int64(123)
 	msec := int64(456)
@@ -57,4 +63,9 @@ func TestDateMs(t *testing.T) {
 	if tm1 != tm1 {
 		t.Errorf("does not match")
 	}
+}
+
+func TestTimeE6ToString(t *testing.T) {
+	tString := TimeE6ToString(2_001_000)
+	fmt.Println(tString)
 }

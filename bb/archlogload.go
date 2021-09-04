@@ -72,7 +72,7 @@ func WsLogLoad(file string) {
 	var lastFlushTime int64
 	var intervalDiff int64
 
-	const timeIntervalE6 = 1_000_000 * 60 * 3
+	const timeIntervalE6 = 1_000_000 * 60 * 3 // flush every 3 min
 
 	for stream.Scan() {
 		rec := stream.Text()
@@ -86,23 +86,23 @@ func WsLogLoad(file string) {
 			intervalDiff = rTimeE6 % timeIntervalE6
 
 			if intervalDiff < 1_000_000 && 1_000_000 < (rTimeE6-lastFlushTime) {
-				flushBoardBuffer(writer, rTimeE6)
+				flushBoardBuffer(writer, (rTimeE6/1_000_000)*1_000_000)
 				lastFlushTime = rTimeE6
 			}
 
 			if rAction == common.PARTIAL {
 				sellBoardBuffer.Reset()
 				buyBoardBuffer.Reset()
+			} else {
+				if rAction == common.UPDATE_BUY {
+					buyBoardBuffer.Set(rPrice, rVolume)
+				}
+				if rAction == common.UPDATE_SELL {
+					sellBoardBuffer.Set(rPrice, rVolume)
+				}
+				db.WriteBoardPointDb(writer, rAction, rTimeE6, rPrice, rVolume)
+				boardNumber += 1
 			}
-			if rAction == common.UPDATE_BUY {
-				buyBoardBuffer.Set(rPrice, rVolume)
-			}
-			if rAction == common.UPDATE_SELL {
-				sellBoardBuffer.Set(rPrice, rVolume)
-			}
-
-			db.WriteBoardPointDb(writer, rAction, rTimeE6, rPrice, rVolume)
-			boardNumber += 1
 		} else if rAction == common.OPEN_INTEREST {
 			db.WriteOpenInterests(writer, rTimeE6, int64(rVolume))
 			oiNumber += 1
@@ -112,7 +112,7 @@ func WsLogLoad(file string) {
 		} else if rAction == common.PREDICTED_FUNDING_RATE {
 			timeE6, _ := strconv.ParseInt(rOption, 10, 64)
 			db.WritePredictedFundingRate(writer, rTimeE6, rVolume, timeE6)
-			log.Println("[NEXT FR", rTimeE6, rVolume, rOption)
+			log.Println("[NEXT FR]", rTimeE6, rVolume, rOption)
 		}
 
 		recordNumber += 1

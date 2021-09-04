@@ -63,7 +63,11 @@ from(bucket: "btc")
   |> range(start: -5d)
   |> filter(fn: (r) => r["_measurement"] == "board")
   |> filter(fn: (r) => r["_field"] == "price" or r["_field"] == "size" or r["_field"] == "side")
+  //|> filter(fn: (r) => r["side"] == "Partial")
+  
   |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
+  |> sort(columns:["_time"])
+  
     `
 
 	client := db.OpenClient()
@@ -81,7 +85,12 @@ from(bucket: "btc")
 			log.Printf("Table changed%s\n", result.TableMetadata().String())
 		}
 		count += 1
-		log.Printf("Value: %v", result.Record().Values())
+		values := result.Record().Values()
+		side := values["side"]
+		if side == "Partial" {
+			log.Printf("---PARTIAL----")
+		}
+		log.Printf("Value: %v", values["side"])
 	}
 
 	log.Printf("Recods=%d\n", count)

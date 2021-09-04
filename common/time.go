@@ -21,6 +21,12 @@ func MsToTime(msec int64) time.Time {
 	return tm
 }
 
+func TimeE6ToTime(timeE6 int64) time.Time {
+	tm := time.Unix(timeE6/1_000_000, (timeE6%1_000_000)*1_000)
+
+	return tm
+}
+
 func TimeSecToE6(sec int64, msec int64) int64 {
 	return sec*1_000_000 + msec*1_000
 }
@@ -51,4 +57,10 @@ func ParseIsoTimeToE6(isoTime string) (timeMs int64) {
 	timeMs = timeObj.UnixNano() / 1_000
 
 	return timeMs
+}
+
+func TimeE6ToString(timeE6 int64) string {
+	tm := TimeE6ToTime(timeE6)
+
+	return tm.String()
 }
