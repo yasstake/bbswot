@@ -27,6 +27,10 @@ func EnableLogCompress() {
 	doCompress = true
 }
 
+func DisableLogCompress() {
+	doCompress = false
+}
+
 //////////// Archived Log records ///////////
 
 func ParseArchivedLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64, rVolume float64, rTransactionId string) {
@@ -116,7 +120,7 @@ func ParseWsLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64, rVol
 
 	r, err := reader.Read()
 	if err != nil {
-		log.Error(err)
+		log.Error(err, buffer)
 	}
 
 	if len(r) < 4 {

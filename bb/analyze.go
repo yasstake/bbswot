@@ -4,6 +4,7 @@ import (
 	"bbswot/db"
 	"context"
 	"github.com/labstack/gommon/log"
+	"time"
 )
 
 func TraverseDb(query string) {
@@ -96,10 +97,10 @@ from(bucket: "btc")
 		}
 		count += 1
 		values := result.Record().Values()
-		tick := values["_time"]
-		side := values["side"]
-		price := values["price"]
-		size := values["size"]
+		tick := values["_time"].(time.Time)
+		side := values["side"].(string)
+		price := values["price"].(float64)
+		size := values["size"].(float64)
 
 		log.Print(tick)
 
@@ -108,9 +109,9 @@ from(bucket: "btc")
 			buyBoard.Reset()
 			sellBoard.Reset()
 		} else if side == "Buy" {
-			buyBoard.Set(price.(float64), size.(float64))
+			buyBoard.Set(price, size)
 		} else if side == "Sell" {
-			sellBoard.Set(price.(float64), size.(float64))
+			sellBoard.Set(price, size)
 		} else {
 			log.Error("Unknown side", side)
 		}

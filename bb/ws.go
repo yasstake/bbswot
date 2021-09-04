@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"sync"
 	"time"
 )
 
@@ -29,6 +28,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 	flagFile.Init(flagFileName)
 	flagFile.Create()
 	peerReset := make(chan struct{})
+	record := make(chan string)
 
 	// wait 300 sec to terminate
 	go flagFile.Check_other_process_loop(300, peerReset)
@@ -58,14 +58,11 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		}
 	}(c)
 
-	var mutex sync.Mutex
+	//var mutex sync.Mutex
 	inLoop := true
 
 	write := func(s string) {
-		mutex.Lock()
-		defer mutex.Unlock()
-
-		w.Write([]byte(s))
+		record <- s
 	}
 
 	go func() {
@@ -184,6 +181,11 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 			}
 			w.Close()
 			goto exit
+
+		case s := <-record:
+			if s != "" {
+				w.Write([]byte(s))
+			}
 		}
 	}
 
