@@ -72,8 +72,8 @@ func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 	}
 
 	p := influxdb2.NewPoint("board",
-		map[string]string{"side": side, "pstr": priceStr},
-		map[string]interface{}{"price": price, "size": size},
+		map[string]string{"s": side, "p": priceStr},
+		map[string]interface{}{"side": side, "price": price, "size": size},
 		t)
 
 	w.WritePoint(p)

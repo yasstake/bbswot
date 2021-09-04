@@ -60,14 +60,13 @@ func CountDb(query string) {
 func FindEdgePrice() {
 	query := `
 from(bucket: "btc")
-  |> range(start: -5d)
+  |> range(start: 1970-01-01T00:00:00Z)
   |> filter(fn: (r) => r["_measurement"] == "board")
-  |> filter(fn: (r) => r["_field"] == "price" or r["_field"] == "size" or r["_field"] == "side")
-  //|> filter(fn: (r) => r["side"] == "Partial")
-  
-  |> pivot(rowKey: ["_time"], columnKey: ["_field"], valueColumn: "_value")
-  |> sort(columns:["_time"])
-  
+  |> filter(fn: (r) => r["_field"] == "price" or r["_field"] == "size" or r["_field"]=="side")
+  |> drop(columns: ["_start", "_stop", "_measurement"])
+  |> pivot(rowKey: ["_time", "s", "p"], columnKey:["_field"], valueColumn: "_value")
+  |> drop(columns: ["p", "s"])
+  |> sort(columns: ["_time", "price"])
     `
 
 	client := db.OpenClient()
@@ -80,17 +79,42 @@ from(bucket: "btc")
 	}
 
 	var count int
+	var sellBoard Board
+	var buyBoard Board
+
+	sellBoard.Reset()
+	buyBoard.Reset()
+
+	// TODO: analyze last tick price
+	//	var lastLow float64
+	//var lastHigh float64
+	//	lastTick float64
+
 	for result.Next() {
 		if result.TableChanged() {
 			log.Printf("Table changed%s\n", result.TableMetadata().String())
 		}
 		count += 1
 		values := result.Record().Values()
+		tick := values["_time"]
 		side := values["side"]
+		price := values["price"]
+		size := values["size"]
+
+		log.Print(tick)
+
 		if side == "Partial" {
 			log.Printf("---PARTIAL----")
+			buyBoard.Reset()
+			sellBoard.Reset()
+		} else if side == "Buy" {
+			buyBoard.Set(price.(float64), size.(float64))
+		} else if side == "Sell" {
+			sellBoard.Set(price.(float64), size.(float64))
+		} else {
+			log.Error("Unknown side", side)
 		}
-		log.Printf("Value: %v", values["side"])
+
 	}
 
 	log.Printf("Recods=%d\n", count)
