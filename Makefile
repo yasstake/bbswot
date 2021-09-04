@@ -10,7 +10,7 @@ LOADER_SRC=./cmd/loader/loader.go
 REAL_LOGGER_BINARY=$(BINDIR)/reallogger
 REAL_LOGGER_SRC=./cmd/reallogger/reallogger.go
 
-GO_SRC=./bb/*.go ./db/*.go
+GO_SRC=./bb/*.go ./db/*.go ./common/*.go
 
 all:$(LOGGER_BINARY)
 
@@ -47,6 +47,6 @@ download:
 
 
 deletedata:
-	influx delete --bucket btc --start 1970-01-01T00:00:00Z --stop 2021-09-02T18:54:09Z
+	influx delete --bucket btc --start 1970-01-01T00:00:00Z --stop 2021-09-10T18:54:09Z
 
 

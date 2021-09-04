@@ -15,6 +15,7 @@ var INFLUXDB_KEY string
 var INFLUXDB_BUCKET string
 var INFLUXDB_ORG string
 var INFLUXDB_URL string
+var INFLUXDB_BATCHSIZE uint
 
 func init() {
 	INFLUXDB_KEY = os.Getenv("INFLUX_TOKEN")
@@ -27,16 +28,21 @@ func init() {
 	url := os.Getenv("INFLUX_HOST")
 	if url != "" {
 		INFLUXDB_URL = url
-
 	} else {
 		INFLUXDB_URL = "http://localhost:8086"
 	}
+
+	INFLUXDB_BATCHSIZE = 5000
+}
+
+func SetInfluxDbBatchSize(size uint) {
+	INFLUXDB_BATCHSIZE = size
 }
 
 func OpenClient() influxdb2.Client {
 	// Store the URL of your InfluxDB instance
 	options := influxdb2.DefaultOptions()
-	options.SetBatchSize(5000)
+	options.SetBatchSize(INFLUXDB_BATCHSIZE)
 	options.SetPrecision(1)
 	client := influxdb2.NewClientWithOptions(INFLUXDB_URL, INFLUXDB_KEY, options)
 
@@ -88,11 +94,16 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 		side = common.TRADE_BUY_STR
 	} else if action == common.TRADE_SELL {
 		side = common.TRADE_SELL_STR
+	} else if action == common.TRADE_BUY_LIQUID {
+		side = common.TRADE_BUY_LIQUID_STR
+	} else if action == common.TRADE_SELL_LIQUID {
+		side = common.TRADE_SELL_LIQUID_STR
 	} else {
 		log.Error("unknown action no", action)
 	}
 
 	p := influxdb2.NewPoint("exec",
+		//map[string]string{"s": side},
 		map[string]string{},
 		map[string]interface{}{"side": side, "price": price, "size": size},
 		t)
@@ -153,29 +164,25 @@ func UniqExecTimeStampE9(timestampE6 int64, id string) (timeE9 int64) {
 	return timeE9
 }
 
-func UniqLiquidTimeStampE9(timestampE6 int64, id string) (timeE9 int64) {
-	timeE9 = FloorTimeStampE6ToE9(timestampE6)
-	timeE9 = timeE9 + LiquidIdToInt(id)
-
-	return timeE9
-}
-
 const IdWidth = 1_000_000
 
 // ExecIdToInt
-// 9fd6a16a-bfe5-580d-9c7c-0168aeb4c93e
+// 9fd6a16a-bfe5-580d-9c7c-0168aeb4c93e      // buy or sell
+// 468925                                    // liquid
 // Parse execute id and convert it to 0-1_000_000 numbers
-func ExecIdToInt(id string) int64 {
-	var id1, id2, id3, id4, id5 int64
+func ExecIdToInt(id string) (idInt int64) {
+	l := len(id)
 
-	fmt.Sscanf(id, "%x-%x-%x-%x-%x", &id1, &id2, &id3, &id4, &id5)
+	if 7 <= l {
+		var id1, id2, id3, id4, id5 int64
+		fmt.Sscanf(id, "%x-%x-%x-%x-%x", &id1, &id2, &id3, &id4, &id5)
 
-	return (id5) % IdWidth
-}
+		idInt = id5 % IdWidth
+	} else {
+		var id6 int64
+		fmt.Sscanf(id, "%d", id6)
 
-func LiquidIdToInt(id string) int64 {
-	var id1 int64
-	fmt.Sscanf(id, "%d", &id1)
-
-	return (id1) % IdWidth
+		idInt = id6 % IdWidth
+	}
+	return idInt
 }

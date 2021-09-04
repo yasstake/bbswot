@@ -96,6 +96,8 @@ func LoadWsRecord(writer api.WriteAPI, rec string) {
 	if rAction == common.TRADE_BUY || rAction == common.TRADE_SELL {
 		db.WriteTradePointDb(writer, rAction, rTimeE6, rPrice, rVolume, rOption)
 		execNumber += 1
+	} else if rAction == common.TRADE_BUY_LIQUID || rAction == common.TRADE_SELL_LIQUID {
+		db.WriteTradePointDb(writer, rAction, rTimeE6, rPrice, rVolume, rOption)
 	} else if rAction == common.PARTIAL || rAction == common.UPDATE_BUY || rAction == common.UPDATE_SELL {
 		// flush entire board periodically
 		intervalDiff = rTimeE6 % timeIntervalE6

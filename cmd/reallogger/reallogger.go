@@ -11,6 +11,7 @@ type DbWriter struct {
 }
 
 func (w *DbWriter) Open() {
+	db.SetInfluxDbBatchSize(10)
 	client := db.OpenClient()
 	(*w).writer = db.NewWriteAPI(client)
 }

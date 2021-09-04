@@ -54,12 +54,6 @@ func TestUniqExecTimeStampE9(t *testing.T) {
 	log.Println(timeE9)
 }
 
-func TestUniqLiquidTimeStampE9(t *testing.T) {
-	timeE9 := UniqLiquidTimeStampE9(1_000_123_456_789, "000123")
-
-	log.Println(timeE9)
-}
-
 //
 // b18cf816-ba56-5258-8c35-2a4e1066048b
 func TestExecIdToInt(t *testing.T) {
@@ -73,7 +67,7 @@ func TestExecIdToInt(t *testing.T) {
 func TestLiquidIdToInt(t *testing.T) {
 	id := "10345039"
 
-	idNumber := LiquidIdToInt(id)
+	idNumber := ExecIdToInt(id)
 
 	log.Println(idNumber)
 }

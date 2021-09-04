@@ -11,9 +11,11 @@ const TRADE_BUY = 4
 const TRADE_BUY_STR = "Buy"
 
 const TRADE_BUY_LIQUID = 5
+const TRADE_BUY_LIQUID_STR = "SELL"
 
 const TRADE_SELL = 6
 const TRADE_SELL_LIQUID = 7
+const TRADE_SELL_LIQUID_STR = "BUY"
 
 // TRADE_BUY_PRICE
 // action, time, BUY_PRICE, 0, 0
