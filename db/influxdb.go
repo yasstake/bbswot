@@ -89,6 +89,10 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 	uniqTime := UniqExecTimeStampE9(timestampE6, execId)
 	t := time.Unix(0, uniqTime)
 
+	if 60_000 < price {
+		log.Warn("Too much price", price)
+	}
+
 	var side string
 	if action == common.TRADE_BUY {
 		side = common.TRADE_BUY_STR

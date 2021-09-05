@@ -19,6 +19,7 @@ func main() {
 	for _, file := range files {
 		log.Println("[loading..]", file)
 		archiveLogMode := bb.CheckArchiveLog(file)
+
 		if archiveLogMode {
 			log.Println("Loading Archive Log file")
 			bb.ArchiveLogLoad(file)

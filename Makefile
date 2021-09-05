@@ -10,6 +10,10 @@ LOADER_SRC=./cmd/loader/loader.go
 REAL_LOGGER_BINARY=$(BINDIR)/reallogger
 REAL_LOGGER_SRC=./cmd/reallogger/reallogger.go
 
+LOG_EXTRACT_BINARY=$(BINDIR)/extractwslog
+LOG_EXTRACT_SRC=./cmd/extractwslog/extractwslog.go
+
+
 GO_SRC=./bb/*.go ./db/*.go ./common/*.go
 
 all:$(LOGGER_BINARY)
@@ -18,10 +22,11 @@ $(BINDIR):
 	echo $(BINDIR)
 	- mkdir $(BINDIR)
 
-$(LOGGER_BINARY): $(BINDIR) $(LOGGER_SRC) $(LOADER_SRC) $(REAL_LOGGER_SRC) $(GO_SRC)
+$(LOGGER_BINARY): $(BINDIR) $(LOGGER_SRC) $(LOADER_SRC) $(REAL_LOGGER_SRC) $(GO_SRC) $(LOG_EXTRACT_SRC)
 	go build -o $(LOGGER_BINARY) $(LOGGER_SRC)
 	go build -o $(LOADER_BINARY) $(LOADER_SRC)
 	go build -o $(REAL_LOGGER_BINARY) $(REAL_LOGGER_SRC)
+	go build -o $(LOG_EXTRACT_BINARY) $(LOG_EXTRACT_SRC)
 
 clean:
 	- rm -rf $(BINDIR)
