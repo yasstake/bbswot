@@ -6,7 +6,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/labstack/gommon/log"
-	"math"
 	"strconv"
 )
 
@@ -142,20 +141,20 @@ func ParseWsLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64, rVol
 		log.Error("Price  error", r[2])
 	}
 
-	if 1_000_000_000_000 < math.Abs(float64(timeE6)) {
-		// uncompressed mode
-		cacheLastTime = timeE6
-		rTimeE6 = timeE6
-
-		cacheLastPrice = price
-		rPrice = price
-	} else {
+	if doCompress {
 		// Diff mode (compressed)
 		rTimeE6 = cacheLastTime + timeE6
 		cacheLastTime = rTimeE6
 
 		rPrice = cacheLastPrice + price
 		cacheLastPrice = rPrice
+	} else {
+		// uncompressed mode
+		cacheLastTime = timeE6
+		rTimeE6 = timeE6
+
+		cacheLastPrice = price
+		rPrice = price
 	}
 
 	rVolume, err = strconv.ParseFloat(r[3], 64)
