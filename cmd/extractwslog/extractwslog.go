@@ -27,6 +27,10 @@ func extractSingleFile(f string) {
 		r1, r2, r3, r4, r5 := bb.ParseWsLogRec(rec)
 		fmt.Printf("%d,%d,%F,%F,%s\n", r1, r2, r3, r4, r5)
 
+		if 6_000_000 < r3 {
+			fmt.Println("HIT")
+		}
+
 		recordNumber += 1
 	}
 }
