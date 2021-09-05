@@ -3,6 +3,7 @@ package main
 import (
 	"bbswot/bb"
 	"bbswot/common"
+	"flag"
 	"fmt"
 	"log"
 )
@@ -31,15 +32,11 @@ func extractSingleFile(f string) {
 }
 
 func main() {
-	extractSingleFile("./TEST_DATA/2021-09-02T10-12-16.log.gz")
+	flag.Parse()
 
-	/*
-		flag.Parse()
+	files := flag.Args()
 
-		files := flag.Args()
-
-		for _, file := range files {
-			extractSingleFile(file)
-		}
-	*/
+	for _, file := range files {
+		extractSingleFile(file)
+	}
 }
