@@ -79,10 +79,11 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 				log.Println("liquid ", len(liqs), " records")
 				sleepTime = 1
 			} else {
-				log.Println("liquid sleep", sleepTime)
-				sleepTime = sleepTime + 5
-				if 30 <= sleepTime {
-					sleepTime = 30
+				sleepTime = sleepTime + 2
+				if 20 <= sleepTime {
+					sleepTime = 20
+				} else {
+					log.Println("liquid sleep", sleepTime)
 				}
 			}
 
