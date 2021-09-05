@@ -1,8 +1,8 @@
 
 build:
-	docker build -t bbplogger .
+	docker build -t bblogger .
 
 
 run-bash:
-	docker run -v /bitlog:/bitlog -it bbplogger /bin/bash
+	docker run -v /bitlog:/bitlog -it bblogger /bin/bash
 	
