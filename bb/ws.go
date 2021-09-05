@@ -58,7 +58,6 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		}
 	}(c)
 
-	//var mutex sync.Mutex
 	inLoop := true
 
 	write := func(s string) {

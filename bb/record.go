@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/labstack/gommon/log"
 	"strconv"
+	"sync"
 )
 
 /*
@@ -75,21 +76,31 @@ func ParseArchivedLogRec(rec string) (rAction int, rTimeE6 int64, rPrice float64
 
 //////////// WS log records ///////////////
 
-func MakeWsLogRec(action int, orgTimeMs int64, orgPrice float64, volume float64, option string) (result string) {
-	var timeMs int64
+var mutexCompressVar sync.Mutex
+
+func CompressTimeAndPrice(orgTimeE6 int64, orgPrice float64) (rTimeE6 int64, rPrice float64) {
+	mutexCompressVar.Lock()
+	rTimeE6 = orgTimeE6 - cacheLastTime
+	cacheLastTime = orgTimeE6
+
+	rPrice = orgPrice - cacheLastPrice
+	cacheLastPrice = orgPrice
+	mutexCompressVar.Unlock()
+
+	return rTimeE6, rPrice
+}
+
+func MakeWsLogRec(action int, orgTimeE6 int64, orgPrice float64, volume float64, option string) (result string) {
+	var timeE6 int64
 	var price float64
 
 	if doCompress {
-		timeMs = orgTimeMs - cacheLastTime
-		cacheLastTime = orgTimeMs
-
-		price = orgPrice - cacheLastPrice
-		cacheLastPrice = orgPrice
+		timeE6, price = CompressTimeAndPrice(orgTimeE6, orgPrice)
 	} else {
-		timeMs = orgTimeMs
+		timeE6 = orgTimeE6
 		price = orgPrice
 	}
-	result = fmt.Sprintf("%d,%d", action, timeMs)
+	result = fmt.Sprintf("%d,%d", action, timeE6)
 
 	priceString := strconv.FormatFloat(price, 'f', -1, 64)
 	result += ","

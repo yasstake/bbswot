@@ -27,6 +27,7 @@ func extractSingleFile(f string) {
 		r1, r2, r3, r4, r5 := bb.ParseWsLogRec(rec)
 		fmt.Printf("%d,%d,%F,%F,%s\n", r1, r2, r3, r4, r5)
 
+		// TODO: for debug perpose [after debugging below lines shold be removed.]
 		if 60_000 < r3 {
 			fmt.Println("HIT")
 		}
@@ -36,7 +37,16 @@ func extractSingleFile(f string) {
 }
 
 func main() {
+	var enable_compress = flag.Bool("compress", true, "Enable log differential compress mode")
+
 	flag.Parse()
+
+	fmt.Println("flag", *enable_compress)
+
+	if *enable_compress {
+		fmt.Printf("[Enable Compress]")
+		bb.EnableLogCompress()
+	}
 
 	files := flag.Args()
 
