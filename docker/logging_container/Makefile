@@ -1,6 +1,6 @@
 
 build:
-	docker build -t bblogger .
+	docker build --no-cache -t bblogger .
 
 
 run-bash:
