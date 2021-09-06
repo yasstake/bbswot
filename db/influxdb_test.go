@@ -65,9 +65,12 @@ func TestExecIdToInt(t *testing.T) {
 }
 
 func TestLiquidIdToInt(t *testing.T) {
-	id := "10345039"
+	id := "12345678"
 
 	idNumber := ExecIdToInt(id)
 
+	if idNumber != 345678 {
+		t.Errorf("id mismatch %s %d", id, idNumber)
+	}
 	log.Println(idNumber)
 }

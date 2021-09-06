@@ -178,14 +178,14 @@ const IdWidth = 1_000_000
 func ExecIdToInt(id string) (idInt int64) {
 	l := len(id)
 
-	if 7 <= l {
+	if 30 <= l {
 		var id1, id2, id3, id4, id5 int64
 		fmt.Sscanf(id, "%x-%x-%x-%x-%x", &id1, &id2, &id3, &id4, &id5)
 
 		idInt = id5 % IdWidth
 	} else {
 		var id6 int64
-		fmt.Sscanf(id, "%d", id6)
+		fmt.Sscanf(id, "%d", &id6)
 
 		idInt = id6 % IdWidth
 	}
