@@ -11,11 +11,11 @@ const TRADE_BUY = 4
 const TRADE_BUY_STR = "Buy"
 
 const TRADE_BUY_LIQUID = 5
-const TRADE_BUY_LIQUID_STR = "SELL"
+const TRADE_BUY_LIQUID_STR = "BUY"
 
 const TRADE_SELL = 6
 const TRADE_SELL_LIQUID = 7
-const TRADE_SELL_LIQUID_STR = "BUY"
+const TRADE_SELL_LIQUID_STR = "SELL"
 
 // TRADE_BUY_PRICE
 // action, time, BUY_PRICE, 0, 0
@@ -53,9 +53,9 @@ func init() {
 		UPDATE_BUY:             "UPD_BUY",
 		UPDATE_SELL:            "UPD_SEL",
 		TRADE_BUY:              "TR__BUY",
-		TRADE_BUY_LIQUID:       "TR_BUYL",
-		TRADE_SELL:             "TR__SEL",
-		TRADE_SELL_LIQUID:      "TR_SELL",
+		TRADE_BUY_LIQUID:       "TR_LBUY",
+		TRADE_SELL:             "TR_SELL",
+		TRADE_SELL_LIQUID:      "TR_LSEL",
 		TRADE_BUY_PRICE:        "TR_BUYP",
 		TRADE_SELL_PRICE:       "TR_SELP",
 		OPEN_INTEREST:          "OP_INTT",
