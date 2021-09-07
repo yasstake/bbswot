@@ -5,11 +5,9 @@ import (
 	"bbswot/common"
 	"flag"
 	"fmt"
-	"log"
 )
 
 func extractSingleFile(f string) {
-	log.Println("[extract]", f)
 	archiveLogMode := bb.CheckArchiveLog(f)
 
 	if archiveLogMode {
@@ -39,7 +37,7 @@ func extractSingleFile(f string) {
 
 		size := int64(r4)
 		if action != "" {
-			fmt.Printf("%d.%d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, size, r3, r5)
+			fmt.Printf("%d.%03d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, size, r3, r5)
 		}
 
 		// TODO: for debug perpose [after debugging below lines shold be removed.]
@@ -71,7 +69,7 @@ func extractArchiveLog(file string) {
 			action = common.TRADE_SELL_STR
 		}
 
-		fmt.Printf("%d.%d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, int(rVolume), rPrice, rOption)
+		fmt.Printf("%d.%03d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, int(rVolume), rPrice, rOption)
 
 		recordNumber += 1
 	}
@@ -82,10 +80,7 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println("flag", *enable_compress)
-
 	if *enable_compress {
-		fmt.Printf("[Enable Compress]")
 		bb.EnableLogCompress()
 	}
 
