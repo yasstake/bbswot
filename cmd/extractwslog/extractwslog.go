@@ -31,7 +31,7 @@ func extractSingleFile(f string) {
 
 		r1, r2, r3, r4, r5 := bb.ParseWsLogRec(rec)
 
-		sec, msec := splitTime(r2)
+		sec, _ := splitTime(r2)
 
 		action := ""
 
@@ -43,7 +43,8 @@ func extractSingleFile(f string) {
 
 		size := int64(r4)
 		if action != "" {
-			fmt.Printf("%d.%02d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, size, r3, r5)
+			//fmt.Printf("%d.%02d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, size, r3, r5)
+			fmt.Printf("%d,BTCUSD,%s,%d,%.0f,%s\n", sec, action, size, r3, r5)
 		}
 
 		// TODO: for debug perpose [after debugging below lines shold be removed.]
@@ -66,7 +67,7 @@ func extractArchiveLog(file string) {
 
 		action := ""
 
-		sec, msec := splitTime(rTimeMs)
+		sec, _ := splitTime(rTimeMs)
 
 		if rAction == common.TRADE_BUY {
 			action = common.TRADE_BUY_STR
@@ -74,7 +75,8 @@ func extractArchiveLog(file string) {
 			action = common.TRADE_SELL_STR
 		}
 
-		fmt.Printf("%d.%02d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, int(rVolume), rPrice, rOption)
+		// fmt.Printf("%d.%02d,BTCUSD,%s,%d,%.0f,%s\n", sec, msec, action, int(rVolume), rPrice, rOption)
+		fmt.Printf("%d,BTCUSD,%s,%d,%.0f,%s\n", sec, action, int(rVolume), rPrice, rOption)
 
 		recordNumber += 1
 	}
