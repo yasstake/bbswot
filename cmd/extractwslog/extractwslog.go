@@ -7,6 +7,13 @@ import (
 	"fmt"
 )
 
+func splitTime(TimeE6 int64) (sec int64, msec int64) {
+	sec = int64(TimeE6 / 1_000_000)
+	msec = int64((TimeE6 % 1_000_000) / 10000)
+
+	return sec, msec
+}
+
 func extractSingleFile(f string) {
 	archiveLogMode := bb.CheckArchiveLog(f)
 
@@ -24,8 +31,7 @@ func extractSingleFile(f string) {
 
 		r1, r2, r3, r4, r5 := bb.ParseWsLogRec(rec)
 
-		sec := int64(r2 / 1_000_000)
-		msec := int64((r2 % 1_000_000) / 10000)
+		sec, msec := splitTime(r2)
 
 		action := ""
 
@@ -60,8 +66,7 @@ func extractArchiveLog(file string) {
 
 		action := ""
 
-		sec := int64(rTimeMs / 1_000_000)
-		msec := int64((rTimeMs % 1_000_000) / 10000)
+		sec, msec := splitTime(rTimeMs)
 
 		if rAction == common.TRADE_BUY {
 			action = common.TRADE_BUY_STR
