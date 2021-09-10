@@ -68,4 +68,7 @@ func TestExecQueue_Action_AddSell(t *testing.T) {
 
 	edge, buy, sell = q.Action(common.TRADE_SELL, 7, 1, 1)
 	log.Print(edge, buy, sell)
+
+	edge, buy, sell = q.Action(common.TRADE_SELL, 8, 5, 1)
+	log.Print(edge, buy, sell)
 }

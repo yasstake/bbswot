@@ -61,20 +61,45 @@ func (c *ExecQueue) Action(action int, timeE6 int64, price float64, size float64
 		return sorted
 	}
 
+	var deq []ExecPrice
 	if action == common.TRADE_BUY {
-		_, c.buyQ = append(c.buyQ)
-		q := sortQ(c.buyQ)
+		// Select low edge price in the buy Queue
+		deq, c.buyQ = append(c.buyQ)
+		l := len(deq)
+
+		if price < c.buyPrice || c.buyPrice == 0 {
+			c.buyPrice = price
+		} else if l != 0 {
+			for _, item := range deq {
+				if item.price <= c.buyPrice {
+					q := sortQ(c.buyQ)
+					c.buyPrice = q[0].price
+					break
+				}
+			}
+		}
 		edgeTimeE6 = c.buyQ[0].timeE6
-		buyEdge = q[0].price
 	} else if action == common.TRADE_SELL {
-		_, c.sellQ = append(c.sellQ)
-		q := sortQ(c.sellQ)
-		pos := len(q) - 1
-		edgeTimeE6 = c.sellQ[pos].timeE6
-		sellEdge = q[pos].price
+		// Select high edge price in the sell Queue
+		deq, c.sellQ = append(c.sellQ)
+		l := len(deq)
+		qlen := len(c.sellQ) - 1
+
+		if c.sellPrice < price {
+			c.sellPrice = price
+		} else if l != 0 {
+			for _, item := range deq {
+				if c.sellPrice <= item.price {
+					q := sortQ(c.sellQ)
+					c.sellPrice = q[qlen].price
+					break
+				}
+			}
+		}
+		edgeTimeE6 = c.sellQ[qlen].timeE6
 	} else {
 		log.Error("Unknown action ", action)
 	}
 
-	return edgeTimeE6, buyEdge, sellEdge
+	return edgeTimeE6, c.buyPrice, c.sellPrice
 }
