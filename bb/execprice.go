@@ -25,6 +25,37 @@ func (c *ExecQueue) Init() {
 	c.sellQ = make([]ExecPrice, 0)
 }
 
+func (c *ExecQueue) Stat() (buyList []ExecPrice, sellList []ExecPrice) {
+
+	sortList := func(execList []ExecPrice) (result []ExecPrice) {
+		sorted := make([]ExecPrice, len(execList))
+		copy(sorted, execList)
+
+		sort.Slice(sorted, func(i, j int) bool {
+			return sorted[i].price < sorted[j].price
+		})
+
+		var lastIndex int
+		var lastPrice float64
+
+		for _, item := range sorted {
+			if lastPrice != item.price {
+				result = append(result, item)
+				lastIndex = len(result) - 1
+				lastPrice = item.price
+			} else {
+				result[lastIndex].size += item.size
+			}
+		}
+		return result
+	}
+
+	buyList = sortList(c.buyQ)
+	sellList = sortList(c.sellQ)
+
+	return buyList, sellList
+}
+
 func (c *ExecQueue) Action(action int, timeE6 int64, price float64, size float64) (edgeTimeE6 int64, buyEdge float64, sellEdge float64) {
 
 	append := func(q []ExecPrice) (deque []ExecPrice, appendQ []ExecPrice) {
