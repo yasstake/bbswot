@@ -10,5 +10,3 @@ func TestInstrument(t *testing.T) {
 
 	fmt.Println(result)
 }
-
-

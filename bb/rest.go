@@ -8,14 +8,13 @@ import (
 )
 
 type RestResponse struct {
-	Code    json.Number     `json:"ret_code"`   // "ret_code":0
-	Message string          `json:"ret_msg"`    // "ret_msg":"OK",
-	ExtCode string          `json:"ext_code"`  // "ext_code":"",
-    ExtInfo string          `json:"ext_info"`  // "ext_info":""
-	Result  json.RawMessage `json:"result"`    // "result": {JSON}
-	TimeStampSec    json.Number     `json:"time_now"`  // "time_now":"1630186820.789949"
+	Code         json.Number     `json:"ret_code"` // "ret_code":0
+	Message      string          `json:"ret_msg"`  // "ret_msg":"OK",
+	ExtCode      string          `json:"ext_code"` // "ext_code":"",
+	ExtInfo      string          `json:"ext_info"` // "ext_info":""
+	Result       json.RawMessage `json:"result"`   // "result": {JSON}
+	TimeStampSec json.Number     `json:"time_now"` // "time_now":"1630186820.789949"
 }
-
 
 func RestRequest(url string) (result string, timeStampMs int64, err error) {
 	req, err := http.NewRequest("GET", url, nil)

@@ -9,9 +9,44 @@ import (
 	"strings"
 )
 
+func ArchiveLogStartEnd(file string) (startTime int64, endTime int64) {
+	stream := common.OpenFileReader(file)
+
+	stream.Scan() // skip header line
+	stream.Scan() // read next line
+
+	_, rTimeMs, _, _, _ := ParseArchivedLogRec(stream.Text())
+	startTime = rTimeMs
+
+	var recordNumber int64
+	for stream.Scan() {
+		_, rTimeMs, _, _, _ = ParseArchivedLogRec(stream.Text())
+
+		recordNumber += 1
+	}
+
+	endTime = rTimeMs
+
+	log.Println("recordnumber", recordNumber)
+
+	return startTime, endTime
+}
+
+func DeleteExecForArchiveLog(file string) {
+	startTime, endTime := ArchiveLogStartEnd(file)
+	log.Println("start, end", startTime, endTime)
+
+	sTime := common.TimeE6ToTime(startTime)
+	eTime := common.TimeE6ToTime(endTime)
+
+	db.DeleteWithQuery(sTime, eTime, "_measurement=exec")
+	log.Println("Deleted")
+}
+
 // ArchiveLogLoad
 // Load Archive log from Bybit website
 func ArchiveLogLoad(file string) {
+
 	client := db.OpenClient()
 	defer client.Close()
 	writer := db.NewWriteAPI(client)

@@ -2,6 +2,7 @@ package db
 
 import (
 	"bbswot/common"
+	"context"
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/influxdata/influxdb-client-go/api"
@@ -61,6 +62,21 @@ func NewQueryAPI(client influxdb2.Client) api.QueryAPI {
 	return api
 }
 
+func NewDeleteAPI(client influxdb2.Client) api.DeleteAPI {
+	api := client.DeleteAPI()
+
+	return api
+}
+
+func DeleteWithQuery(start, end time.Time, query string) {
+	ctx := context.Background()
+
+	client := OpenClient()
+	deleteApi := NewDeleteAPI(client)
+
+	deleteApi.DeleteWithName(ctx, INFLUXDB_ORG, INFLUXDB_BUCKET, start, end, query)
+}
+
 func WriteBoardPointDb(w api.WriteAPI, action int, timestampE6 int64, price float64, size float64) {
 	t := time.Unix(0, timestampE6*1_000)
 
@@ -94,20 +110,26 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 		log.Warn("Too much price", price)
 	}
 
+	var measurement string
+
 	var side string
 	if action == common.TRADE_BUY {
 		side = common.TRADE_BUY_STR
+		measurement = "exec"
 	} else if action == common.TRADE_SELL {
 		side = common.TRADE_SELL_STR
+		measurement = "exec"
 	} else if action == common.TRADE_BUY_LIQUID {
 		side = common.TRADE_BUY_LIQUID_STR
+		measurement = "liquid"
 	} else if action == common.TRADE_SELL_LIQUID {
+		measurement = "liquid"
 		side = common.TRADE_SELL_LIQUID_STR
 	} else {
 		log.Error("unknown action no", action)
 	}
 
-	p := influxdb2.NewPoint("exec",
+	p := influxdb2.NewPoint(measurement,
 		//map[string]string{"s": side},
 		map[string]string{},
 		map[string]interface{}{"side": side, "price": price, "size": size},
