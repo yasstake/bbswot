@@ -6,7 +6,7 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go"
 	"github.com/influxdata/influxdb-client-go/api"
-	"github.com/labstack/gommon/log"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -107,7 +107,7 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 
 	// TODO: remove after debugg
 	if 60_000 < price {
-		log.Warn("Too much price", price)
+		log.Println("Too much price", uniqTime, common.TimeE6ToString(uniqTime), action, price)
 	}
 
 	var measurement string
@@ -126,7 +126,7 @@ func WriteTradePointDb(w api.WriteAPI, action int, timestampE6 int64, price floa
 		measurement = "liquid"
 		side = common.TRADE_SELL_LIQUID_STR
 	} else {
-		log.Error("unknown action no", action)
+		log.Fatal("unknown action no", action)
 	}
 
 	p := influxdb2.NewPoint(measurement,
