@@ -200,6 +200,8 @@ func TestMakeUnique(t *testing.T) {
 	var lastBuyPrice float64
 	var lastSellPrice float64
 
+	var recNumber int64
+
 	for stream.Scan() {
 		rAction, rTimeE6, rPrice, rVolume, _ := ParseArchivedLogRec(stream.Text())
 
@@ -217,16 +219,17 @@ func TestMakeUnique(t *testing.T) {
 				lastSellPrice = rPrice
 			}
 		}
-
+		recNumber += 1
 	}
+
+	fmt.Println("total rec=", recNumber)
 }
 
 func TestLoadExec(t *testing.T) {
 	var q ExecQueue
 
 	q.Init()
-	//q.durationE6 = 1_000_000 * 60
-	q.durationE6 = 2
+	q.durationE6 = 1_000_000 * 300
 
 	file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
 	stream := common.OpenFileReader(file)
@@ -235,7 +238,9 @@ func TestLoadExec(t *testing.T) {
 
 	var recordNumber int64
 	var lastBuyPrice float64
+	var lastEdgeBuyPrice float64
 	var lastSellPrice float64
+	var lastEdgeSellPrice float64
 
 	fmt.Println("load start")
 
@@ -244,16 +249,20 @@ func TestLoadExec(t *testing.T) {
 		// fmt.Println(common.TimeE6ToString(rTimeE6), rAction, rTimeE6, rPrice, rVolume)
 		timeE6, buyPrice, sellPrice := q.Action(rAction, rTimeE6, rPrice, rVolume)
 
-		if lastBuyPrice != buyPrice {
+		if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge {
 			lastBuyPrice = buyPrice
+			lastEdgeBuyPrice = q.buyEdge
 			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, buyPrice, q.buyEdge)
 		}
 
-		if lastSellPrice != sellPrice {
+		if lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
 			lastSellPrice = sellPrice
+			lastEdgeSellPrice = q.sellEdge
 			fmt.Println("SELL", common.TimeE6ToString(timeE6), timeE6, sellPrice, q.sellEdge)
 		}
 
 		recordNumber += 1
 	}
+
+	fmt.Println("Record No= ", recordNumber)
 }
