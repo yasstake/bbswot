@@ -2,7 +2,6 @@ package bb
 
 import (
 	"bbswot/common"
-	"fmt"
 	"github.com/labstack/gommon/log"
 	"sort"
 )
@@ -15,19 +14,20 @@ type ExecPrice struct {
 
 type ExecQueue struct {
 	durationE6 int64
-	buyPrice   float64
-	buyEdge    float64
-	sellPrice  float64
-	sellEdge   float64
-	edgeTime   int64
+	BuyPrice   float64
+	BuyEdge    float64
+	SellPrice  float64
+	SellEdge   float64
+	EdgeTime   int64
 
 	buyQ  []ExecPrice
 	sellQ []ExecPrice
 }
 
-func (c *ExecQueue) Init() {
+func (c *ExecQueue) Init(durationE6 int64) {
 	c.buyQ = make([]ExecPrice, 0)
 	c.sellQ = make([]ExecPrice, 0)
+	c.durationE6 = durationE6
 }
 
 func (c *ExecQueue) Stat() (buyList []ExecPrice, buyVolume float64, sellList []ExecPrice, sellVolume float64) {
@@ -99,6 +99,25 @@ func SplitQueue(queue []ExecPrice, timeE6 int64) (before []ExecPrice, after []Ex
 	return before, after
 }
 
+func MaxPrice(queue []ExecPrice) (price float64) {
+	for _, item := range queue {
+		if price < item.price || price == 0 {
+			price = item.price
+		}
+	}
+
+	return price
+}
+
+func MinPrice(queue []ExecPrice) (price float64) {
+	for _, item := range queue {
+		if item.price < price || price == 0 {
+			price = item.price
+		}
+	}
+	return price
+}
+
 func EnqueueAction(queue []ExecPrice, timeE6 int64, price float64, size float64) (result []ExecPrice) {
 	exec := ExecPrice{timeE6: timeE6, price: price, size: size}
 	//result = append(queue, exec)
@@ -146,17 +165,6 @@ func CompareExecPrice(price float64, q []ExecPrice, higher bool) bool {
 }
 
 func (c *ExecQueue) Action(action int, timeE6 int64, price float64, size float64) (edgeTimeE6 int64, buyEdge float64, sellEdge float64) {
-	sortPrice := func(q []ExecPrice) (sorted []ExecPrice) {
-		sorted = make([]ExecPrice, len(q))
-		copy(sorted, q)
-
-		sort.Slice(sorted, func(i, j int) bool {
-			return sorted[i].price < sorted[j].price
-		})
-
-		return sorted
-	}
-
 	// Enqueue action
 	if action == common.TRADE_BUY {
 		c.buyQ = EnqueueAction(c.buyQ, timeE6, price, size)
@@ -167,59 +175,61 @@ func (c *ExecQueue) Action(action int, timeE6 int64, price float64, size float64
 	}
 
 	// Dequeue old queue
-	c.edgeTime = timeE6 - c.durationE6
+	c.EdgeTime = timeE6 - c.durationE6
 
-	var dequeue []ExecPrice
+	var buyDequeue []ExecPrice
 
 	// delete buy q
-	dequeue, c.buyQ = DequeAction(c.buyQ, c.edgeTime)
-	l := len(dequeue)
+	buyDequeue, c.buyQ = DequeAction(c.buyQ, c.EdgeTime)
+	l := len(buyDequeue)
 	if 0 < l {
-		//fmt.Println("Dequeue Buy", dequeue)
-		c.buyEdge = dequeue[l-1].price
+		//fmt.Println("Dequeue Buy", buyDequeue)
+		c.BuyEdge = buyDequeue[l-1].price
 	}
 
 	if action == common.TRADE_BUY {
 		l = len(c.buyQ)
 		if 0 < l {
-			if price < c.buyPrice || c.buyPrice == 0 {
-				c.buyPrice = price
-			} else if CompareExecPrice(c.buyPrice, dequeue, false) {
-				fmt.Println("Update")
-				c.buyPrice = sortPrice(c.buyQ)[0].price
+			if c.BuyPrice < price || c.BuyPrice == 0 {
+				c.BuyPrice = price
+			} else {
+				c.BuyPrice = MaxPrice(c.buyQ)
 			}
+
 		} else {
-			c.buyPrice = 0
+			c.BuyPrice = 0
 		}
 	}
 
 	// delete sell q
-	dequeue, c.sellQ = DequeAction(c.sellQ, c.edgeTime)
-	l = len(dequeue)
+	var sellDequeue []ExecPrice
+
+	sellDequeue, c.sellQ = DequeAction(c.sellQ, c.EdgeTime)
+	l = len(sellDequeue)
 	if 0 < l {
-		// fmt.Println("Dequeue Sell", dequeue)
-		c.sellEdge = dequeue[l-1].price
+		// fmt.Println("Dequeue Sell", buyDequeue)
+		c.SellEdge = sellDequeue[l-1].price
 	}
 
 	if action == common.TRADE_SELL {
 		l = len(c.sellQ)
 		if 0 < l {
-			if c.sellPrice < price {
-				c.sellPrice = price
-			} else if CompareExecPrice(c.sellPrice, dequeue, true) {
-				c.sellPrice = sortPrice(c.sellQ)[l-1].price
+			if price < c.SellPrice || c.SellPrice == 0 {
+				c.SellPrice = price
+			} else {
+				c.SellPrice = MinPrice(c.sellQ)
 			}
 		} else {
-			c.sellPrice = 0
+			c.SellPrice = 0
 		}
 	}
 
 	if len(c.buyQ) == 0 {
-		c.buyPrice = 0
+		c.BuyPrice = 0
 	}
 	if len(c.sellQ) == 0 {
-		c.sellPrice = 0
+		c.SellPrice = 0
 	}
 
-	return c.edgeTime, c.buyPrice, c.sellPrice
+	return c.EdgeTime, c.BuyPrice, c.SellPrice
 }

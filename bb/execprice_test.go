@@ -72,6 +72,21 @@ func TestSplitQueue(t *testing.T) {
 
 }
 
+func TestMaxPrice(t *testing.T) {
+	var data = []ExecPrice{
+		{9, 47357, 832},
+		{10, 47357, 832},
+		{11, 47359.5, 2},
+		{12, 47354.5, 2},
+	}
+
+	price := MaxPrice(data)
+	fmt.Println(price)
+
+	price = MinPrice(data)
+	fmt.Println(price)
+}
+
 func TestEnqueueAction(t *testing.T) {
 	var queue []ExecPrice
 
@@ -143,8 +158,7 @@ func TestIsExistOutside(t *testing.T) {
 func TestExecQueue_Action_AddBuy(t *testing.T) {
 	var q ExecQueue
 
-	q.Init()
-	q.durationE6 = 2
+	q.Init(2)
 
 	edge, buy, sell := q.Action(common.TRADE_BUY, 0, 0.5, 1)
 	log.Print(edge, buy, sell)
@@ -174,10 +188,7 @@ func TestExecQueue_Action_AddBuy(t *testing.T) {
 func TestExecQueue_Action_AddSell(t *testing.T) {
 	var q ExecQueue
 
-	q.Init()
-
-	q.Init()
-	q.durationE6 = 2
+	q.Init(2)
 
 	edge, buy, sell := q.Action(common.TRADE_BUY, 0, 0.5, 1)
 	log.Print(edge, buy, sell)
@@ -222,8 +233,7 @@ func TestExecQueue_Action_AddSell(t *testing.T) {
 func TestLoadExecData2(t *testing.T) {
 	var q ExecQueue
 
-	q.Init()
-	q.durationE6 = 10
+	q.Init(10)
 
 	for _, item := range execDATA {
 		edge, buy, sell := q.Action(common.TRADE_SELL, item.timeE6, item.price, item.size)
@@ -289,8 +299,7 @@ func TestLoadExec(t *testing.T) {
 
 	fmt.Println("------- START --------")
 
-	q.Init()
-	q.durationE6 = 1_000_000 * 300
+	q.Init(1_000_000 * 300)
 
 	file := "../TEST_DATA/BTCUSD2021-08-31.csv.gz"
 	// file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
@@ -312,26 +321,26 @@ func TestLoadExec(t *testing.T) {
 		timeE6, buyPrice, sellPrice := q.Action(rAction, rTimeE6, rPrice, rVolume)
 
 		/*
-			if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge {
-				lastBuyPrice = buyPrice
-				lastEdgeBuyPrice = q.buyEdge
-				fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, buyPrice, q.buyEdge)
+			if lastBuyPrice != BuyPrice || lastEdgeBuyPrice != q.BuyEdge {
+				lastBuyPrice = BuyPrice
+				lastEdgeBuyPrice = q.BuyEdge
+				fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, BuyPrice, q.BuyEdge)
 			}
 
-			if lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
-				lastSellPrice = sellPrice
-				lastEdgeSellPrice = q.sellEdge
-				fmt.Println("SELL", common.TimeE6ToString(timeE6), timeE6, sellPrice, q.sellEdge)
+			if lastSellPrice != SellPrice || lastEdgeSellPrice != q.SellEdge {
+				lastSellPrice = SellPrice
+				lastEdgeSellPrice = q.SellEdge
+				fmt.Println("SELL", common.TimeE6ToString(timeE6), timeE6, SellPrice, q.SellEdge)
 			}
 		*/
 
-		if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge || lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
+		if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.BuyEdge || lastSellPrice != sellPrice || lastEdgeSellPrice != q.SellEdge {
 			lastBuyPrice = buyPrice
-			lastEdgeBuyPrice = q.buyEdge
+			lastEdgeBuyPrice = q.BuyEdge
 			lastSellPrice = sellPrice
-			lastEdgeSellPrice = q.sellEdge
+			lastEdgeSellPrice = q.SellEdge
 
-			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, "\t", buyPrice, "\t", q.buyEdge, "\t", sellPrice, "\t", q.sellEdge)
+			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, "\t", buyPrice, "\t", q.BuyEdge, "\t", sellPrice, "\t", q.SellEdge)
 			fmt.Println(common.TimeE6ToString(rTimeE6))
 			// CheckExecTimeOrder(q.buyQ, t)
 			// CheckExecTimeOrder(q.sellQ, t)
