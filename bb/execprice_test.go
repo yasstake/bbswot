@@ -37,12 +37,36 @@ var execDATA = []ExecPrice{
 	{1630439896764000, 47350, 1},
 }
 
+func TestSplitQueue(t *testing.T) {
+	var data = []ExecPrice{
+		{9, 47357, 832},
+		{10, 47357, 832},
+		{11, 47359.5, 2},
+		{12, 47354.5, 2},
+	}
+
+	before, after := SplitQueue(data, 8)
+	fmt.Println(before, after)
+
+	before, after = SplitQueue(data, 9)
+	fmt.Println(before, after)
+
+	before, after = SplitQueue(data, 10)
+	fmt.Println(before, after)
+	before, after = SplitQueue(data, 12)
+	fmt.Println(before, after)
+	before, after = SplitQueue(data, 13)
+	fmt.Println(before, after)
+
+}
+
 func TestEnqueueAction(t *testing.T) {
 	var queue []ExecPrice
 
-	queue = EnqueueAction(queue, 10, 10.0, 10.0)
+	queue = EnqueueAction(queue, 9, 10.0, 10.0)
 	queue = EnqueueAction(queue, 11, 10.0, 10.0)
 	queue = EnqueueAction(queue, 12, 10.0, 10.0)
+	queue = EnqueueAction(queue, 10, 10.0, 10.0)
 
 	log.Println(queue)
 }
@@ -249,18 +273,29 @@ func TestLoadExec(t *testing.T) {
 		// fmt.Println(common.TimeE6ToString(rTimeE6), rAction, rTimeE6, rPrice, rVolume)
 		timeE6, buyPrice, sellPrice := q.Action(rAction, rTimeE6, rPrice, rVolume)
 
-		if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge {
+		/*
+			if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge {
+				lastBuyPrice = buyPrice
+				lastEdgeBuyPrice = q.buyEdge
+				fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, buyPrice, q.buyEdge)
+			}
+
+			if lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
+				lastSellPrice = sellPrice
+				lastEdgeSellPrice = q.sellEdge
+				fmt.Println("SELL", common.TimeE6ToString(timeE6), timeE6, sellPrice, q.sellEdge)
+			}
+		*/
+
+		if lastBuyPrice != buyPrice || lastEdgeBuyPrice != q.buyEdge || lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
 			lastBuyPrice = buyPrice
 			lastEdgeBuyPrice = q.buyEdge
-			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, buyPrice, q.buyEdge)
-		}
-
-		if lastSellPrice != sellPrice || lastEdgeSellPrice != q.sellEdge {
 			lastSellPrice = sellPrice
 			lastEdgeSellPrice = q.sellEdge
-			fmt.Println("SELL", common.TimeE6ToString(timeE6), timeE6, sellPrice, q.sellEdge)
-		}
 
+			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, "\t", buyPrice, "\t", q.buyEdge, "\t", sellPrice, "\t", q.sellEdge)
+
+		}
 		recordNumber += 1
 	}
 

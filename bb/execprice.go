@@ -63,11 +63,52 @@ func (c *ExecQueue) Stat() (buyList []ExecPrice, buyVolume float64, sellList []E
 	return buyList, buyVolume, sellList, sellVolume
 }
 
-func EnqueueAction(queue []ExecPrice, timeE6 int64, price float64, size float64) []ExecPrice {
-	exec := ExecPrice{timeE6: timeE6, price: price, size: size}
-	q := append(queue, exec)
+// SplitQueue
+//Split queue in two(before, after)
+func SplitQueue(queue []ExecPrice, timeE6 int64) (before []ExecPrice, after []ExecPrice) {
+	l := len(queue)
+	if l == 0 {
+		return before, after
+	}
 
-	return q
+	i := l - 1
+
+	for {
+		fmt.Println(i, queue[i])
+		if queue[i].timeE6 <= timeE6 {
+			break
+		}
+
+		i -= 1
+
+		if i < 0 {
+			break
+		}
+	}
+
+	if i == -1 {
+		before = []ExecPrice{}
+		after = queue
+	} else if i == l-1 {
+		before = queue
+		after = []ExecPrice{}
+	} else {
+		before = queue[:i+1]
+		after = queue[i+1:]
+	}
+
+	return before, after
+}
+
+func EnqueueAction(queue []ExecPrice, timeE6 int64, price float64, size float64) (result []ExecPrice) {
+	exec := ExecPrice{timeE6: timeE6, price: price, size: size}
+
+	before, after := SplitQueue(queue, timeE6)
+
+	result = append(before, exec)
+	result = append(result, after...)
+
+	return result
 }
 
 func DequeAction(q []ExecPrice, timeE6 int64) (deque []ExecPrice, remainQ []ExecPrice) {
