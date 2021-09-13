@@ -10,11 +10,11 @@ import (
 var execDATA = []ExecPrice{
 	{1630439895807000, 47357, 832},
 	{1630439895808000, 47357, 832},
+	{1630439894032000, 47354, 2},
 	{1630439895808000, 47359.5, 2},
 	{1630439895808000, 47354.5, 2},
 	{1630439895808000, 47354.5, 954},
 	{1630439895808000, 47354.5, 1},
-	{1630439894032000, 47354, 2},
 	{1630439894032000, 47354, 1},
 	{1630439893874000, 47353.5, 1},
 	{1630439893838000, 47353.5, 1},
@@ -35,6 +35,18 @@ var execDATA = []ExecPrice{
 	{1630439893764000, 47350, 3000},
 	{1630439893764000, 47350, 1},
 	{1630439896764000, 47350, 1},
+}
+
+func CheckExecTimeOrder(data []ExecPrice, t *testing.T) {
+	var lastTime int64
+
+	for _, item := range data {
+		if item.timeE6 < lastTime {
+			t.Error("Wrong Time Order", item, lastTime)
+		}
+
+		lastTime = item.timeE6
+	}
 }
 
 func TestSplitQueue(t *testing.T) {
@@ -69,6 +81,8 @@ func TestEnqueueAction(t *testing.T) {
 	queue = EnqueueAction(queue, 10, 10.0, 10.0)
 
 	log.Println(queue)
+
+	CheckExecTimeOrder(queue, t)
 }
 
 func TestDequeAction(t *testing.T) {
@@ -79,6 +93,8 @@ func TestDequeAction(t *testing.T) {
 	queue = EnqueueAction(queue, 12, 10.0, 10.0)
 
 	deque, queue := DequeAction(queue, 11)
+
+	CheckExecTimeOrder(queue, t)
 
 	fmt.Println("Deque", deque)
 	fmt.Println("Queue", queue)
@@ -215,8 +231,27 @@ func TestLoadExecData2(t *testing.T) {
 	}
 }
 
+func TestLoadExecData3(t *testing.T) {
+	//	var q ExecQueue
+
+	//	q.Init()
+	//q.durationE6 = 10
+	var q []ExecPrice
+
+	for _, item := range execDATA {
+		q = EnqueueAction(q, item.timeE6, item.price, item.size)
+		//edge, buy, sell := q.Action(common.TRADE_SELL, item.timeE6, item.price, item.size)
+		//	log.Print(edge, buy, sell)
+		fmt.Println(q)
+	}
+
+	CheckExecTimeOrder(q, t)
+
+}
+
 func TestMakeUnique(t *testing.T) {
-	file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
+	//file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
+	file := "../TEST_DATA/BTCUSD2021-08-31.csv.gz"
 	stream := common.OpenFileReader(file)
 
 	stream.Scan() // skip header line
@@ -252,10 +287,13 @@ func TestMakeUnique(t *testing.T) {
 func TestLoadExec(t *testing.T) {
 	var q ExecQueue
 
+	fmt.Println("------- START --------")
+
 	q.Init()
 	q.durationE6 = 1_000_000 * 300
 
-	file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
+	file := "../TEST_DATA/BTCUSD2021-08-31.csv.gz"
+	// file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
 	stream := common.OpenFileReader(file)
 
 	stream.Scan() // skip header line
@@ -294,7 +332,9 @@ func TestLoadExec(t *testing.T) {
 			lastEdgeSellPrice = q.sellEdge
 
 			fmt.Println("BUY", common.TimeE6ToString(timeE6), timeE6, "\t", buyPrice, "\t", q.buyEdge, "\t", sellPrice, "\t", q.sellEdge)
-
+			fmt.Println(common.TimeE6ToString(rTimeE6))
+			// CheckExecTimeOrder(q.buyQ, t)
+			// CheckExecTimeOrder(q.sellQ, t)
 		}
 		recordNumber += 1
 	}

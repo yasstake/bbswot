@@ -64,7 +64,7 @@ func (c *ExecQueue) Stat() (buyList []ExecPrice, buyVolume float64, sellList []E
 }
 
 // SplitQueue
-//Split queue in two(before, after)
+//Split queue in two(before, after) by time
 func SplitQueue(queue []ExecPrice, timeE6 int64) (before []ExecPrice, after []ExecPrice) {
 	l := len(queue)
 	if l == 0 {
@@ -74,7 +74,6 @@ func SplitQueue(queue []ExecPrice, timeE6 int64) (before []ExecPrice, after []Ex
 	i := l - 1
 
 	for {
-		fmt.Println(i, queue[i])
 		if queue[i].timeE6 <= timeE6 {
 			break
 		}
@@ -102,7 +101,7 @@ func SplitQueue(queue []ExecPrice, timeE6 int64) (before []ExecPrice, after []Ex
 
 func EnqueueAction(queue []ExecPrice, timeE6 int64, price float64, size float64) (result []ExecPrice) {
 	exec := ExecPrice{timeE6: timeE6, price: price, size: size}
-
+	//result = append(queue, exec)
 	before, after := SplitQueue(queue, timeE6)
 
 	result = append(before, exec)
@@ -118,12 +117,6 @@ func DequeAction(q []ExecPrice, timeE6 int64) (deque []ExecPrice, remainQ []Exec
 	}
 
 	deque = make([]ExecPrice, 0)
-
-	/* TODO: sort q in time order
-	sort.Slice(q, func(i, j int) bool {
-		return q[i].timeE6 < q[j].timeE6
-	})
-	*/
 
 	// deque until the queue length within duration
 	for {
