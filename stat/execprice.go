@@ -1,4 +1,4 @@
-package bb
+package stat
 
 import (
 	"bbswot/common"

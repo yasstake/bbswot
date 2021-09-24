@@ -3,6 +3,7 @@ package main
 import (
 	"bbswot/bb"
 	"bbswot/common"
+	"bbswot/stat"
 	"flag"
 	"fmt"
 	"log"
@@ -19,11 +20,11 @@ func main() {
 	*/
 
 	parseFile := func(file string) {
-		fmt.Println("timestamp, buyprice, buyedge, sellprice, selledge")
+		fmt.Println("timestamp,buyprice,buyedge,sellprice,selledge")
 
 		stream := common.OpenFileReader(file)
 
-		var q bb.ExecQueue
+		var q stat.ExecQueue
 
 		q.Init(1_000_000 * 300) // 300 sec = 6 min
 

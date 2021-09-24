@@ -17,6 +17,7 @@ import (
 const CHANNEL_ORDER_BOOK_200 = "orderBook_200.100ms.BTCUSD"
 const CHANNEL_TRADE = "trade.BTCUSD"
 const CHANNEL_INFO = "instrument_info.100ms.BTCUSD"
+const CHANNEL_LIQUIDATION = "liquidation.BTCUSD"
 
 const writeWait = 30 * time.Second
 const pongWait = 60 * time.Second
@@ -58,42 +59,9 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		}
 	}(c)
 
-	inLoop := true
-
 	write := func(s string) {
 		record <- s
 	}
-
-	go func() {
-		var lastLiquidTime int64
-		var sleepTime int
-
-		for {
-			liqs, _, err := LiquidRequest(&lastLiquidTime)
-			if err != nil {
-				log.Println(err)
-			}
-
-			if len(liqs) != 0 {
-				write(liqs.ToLog())
-				log.Println("liquid ", len(liqs), " records")
-				sleepTime = 1
-			} else {
-				sleepTime = sleepTime + 2
-				if 20 <= sleepTime {
-					sleepTime = 20
-				} else {
-					log.Println("liquid sleep", sleepTime)
-				}
-			}
-
-			if !inLoop {
-				log.Println("exit liquid listen loop")
-				break
-			}
-			time.Sleep(time.Duration(sleepTime * int(time.Second)))
-		}
-	}()
 
 	// message receive loop (go routine)
 	go func() {
@@ -101,6 +69,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 		var boardUpdateCount int
 		var tradeCount int
 		var infoCount int
+		var liquidCount int
 
 		for {
 			_, message, err := c.ReadMessage()
@@ -112,8 +81,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 			decoded := ParseMessage(message)
 
 			if messageCount%1000 == 0 {
-				log.Printf("%d total / %d board update/ %d execute/ %d info",
-					messageCount, boardUpdateCount, tradeCount, infoCount)
+				log.Printf("%d total / %d board update/ %d execute/ %d info / %d liquid", messageCount, boardUpdateCount, tradeCount, infoCount, liquidCount)
 			}
 			messageCount += 1
 
@@ -139,6 +107,11 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 				}
 				write(s)
 
+			case CHANNEL_LIQUIDATION:
+				liquidCount += 1
+				s := ParseLiquidationMessage(decoded.Data)
+				write(s)
+
 			default:
 				log.Println("[OTHER CHANNEL]", string(message))
 			}
@@ -157,6 +130,7 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 	subscribe(CHANNEL_ORDER_BOOK_200)
 	subscribe(CHANNEL_TRADE)
 	subscribe(CHANNEL_INFO)
+	subscribe(CHANNEL_LIQUIDATION)
 
 	// main message loop
 	for {
@@ -191,7 +165,6 @@ func Connect(flagFileName string, w io.WriteCloser, closeWaitMin int) {
 
 closeWait:
 	{
-		inLoop = false
 		log.Println("Peer reset close")
 
 		s := 0

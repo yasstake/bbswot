@@ -61,7 +61,7 @@ func LiquidRequest(from_id *int64) (liq LiquidRecs, timeStampMs int64, err error
 
 	liq, err = LiquidMessage(body)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, body)
 	}
 
 	l := len(liq)

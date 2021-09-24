@@ -58,7 +58,7 @@ func ParseOrderBookSnapshot(message json.RawMessage, timeE6 int64) (result strin
 
 	err := json.Unmarshal(message, &data)
 	if err != nil {
-		log.Fatalln("Fail to pase message", err, message)
+		log.Fatalln("Fail to Parse message", err, message)
 	}
 
 	l := len(data)

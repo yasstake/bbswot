@@ -1,6 +1,7 @@
-package bb
+package stat
 
 import (
+	"bbswot/bb"
 	"bbswot/common"
 	"fmt"
 	"log"
@@ -272,7 +273,7 @@ func TestMakeUnique(t *testing.T) {
 	var recNumber int64
 
 	for stream.Scan() {
-		rAction, rTimeE6, rPrice, rVolume, _ := ParseArchivedLogRec(stream.Text())
+		rAction, rTimeE6, rPrice, rVolume, _ := bb.ParseArchivedLogRec(stream.Text())
 
 		if rAction == common.TRADE_BUY {
 			if lastBuyPrice != rPrice {
@@ -316,7 +317,7 @@ func TestLoadExec(t *testing.T) {
 	fmt.Println("load start")
 
 	for stream.Scan() {
-		rAction, rTimeE6, rPrice, rVolume, _ := ParseArchivedLogRec(stream.Text())
+		rAction, rTimeE6, rPrice, rVolume, _ := bb.ParseArchivedLogRec(stream.Text())
 		// fmt.Println(common.TimeE6ToString(rTimeE6), rAction, rTimeE6, rPrice, rVolume)
 		timeE6, buyPrice, sellPrice := q.Action(rAction, rTimeE6, rPrice, rVolume)
 
