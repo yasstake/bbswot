@@ -302,8 +302,8 @@ func TestLoadExec(t *testing.T) {
 
 	q.Init(1_000_000 * 300)
 
-	file := "../TEST_DATA/BTCUSD2021-08-31.csv.gz"
-	// file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
+	//file := "../TEST_DATA/BTCUSD2021-08-31.csv.gz"
+	file := "../TEST_DATA/BTCUSD2021-08-31.sort.csv.gz"
 	stream := common.OpenFileReader(file)
 
 	stream.Scan() // skip header line
